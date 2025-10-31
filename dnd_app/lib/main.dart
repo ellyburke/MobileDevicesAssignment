@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+// Imports for other screens
+import 'package:dnd_app/screens/friends.dart';
+import 'package:dnd_app/screens/characters.dart';
+import 'package:dnd_app/screens/sessions.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -35,6 +40,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
+  // Pages list for navigation
+  List<Map<String, dynamic>> pages = [
+    {'title': 'Characters', 'icon':Icons.add},
+    {'title': 'Game Info', 'icon':Icons.shield},
+    {'title': 'Friends', 'icon':Icons.people, 'screen': FriendsPage()},
+    {'title': 'Sessions', 'icon':Icons.calendar_month},
+  ];
+
   @override
   Widget build(BuildContext context) {
     // Building the homepage
@@ -47,14 +60,147 @@ class _HomePageState extends State<HomePage> {
           IconButton(onPressed: null, icon: Icon(Icons.logout))
         ],
       ),
-      body: Center(
-        child: Column(
+      body: SingleChildScrollView(
+          child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text("Welcome, John", style: TextStyle(fontSize: 45)),
-            
+            SizedBox(height: 50),
+            Text("Welcome, John", style: TextStyle(fontSize: 30)),
+            // Idea: have the title change greetings based on the time of day
+            SizedBox(height: 40,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(170,130),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                    onPressed: (){}, 
+                    child: Column(
+                      children: [
+                        Icon(pages[0]['icon']),
+                        Text(pages[0]['title'])
+                      ],
+                    ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(170,130),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
+                  ),
+                  onPressed: (){},
+                  child: Column(
+                    children: [
+                      Icon(pages[1]['icon']),
+                      Text(pages[1]['title'])
+                    ],
+                  ),
+                )
+              ],
+            ),
+            SizedBox(height: 30,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(170,130),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  onPressed: (){
+                    Navigator.push( context,
+                      MaterialPageRoute(builder: (context) => FriendsPage())
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      Icon(pages[2]['icon']),
+                      Text(pages[2]['title'])
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: Size(170,130),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  onPressed: (){
+                    Navigator.push( context,
+                        MaterialPageRoute(builder: (context) => SessionsPage())
+                    );
+                    },
+                  child: Column(
+                    children: [
+                      Icon(pages[3]['icon']),
+                      Text(pages[3]['title'])
+                    ],
+                  ),
+                )
+              ],
+            ),
+            SizedBox(height: 40,),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                  padding: EdgeInsets.only(left: 10),
+                child: Text("Recent Notifications",
+                  style: TextStyle(fontSize: 30),),
+              ),
+            ),
+            // A Container that holds any notifications the user has missed
+            Container(
+              padding: EdgeInsets.only(left: 20, right: 20, top: 10),
+              height: 300,
+              child: ListView.builder(
+                itemCount: 10,
+                itemBuilder: (context, index){
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 40,
+                          color: Colors.lightBlue,
+                        ),
+                        Column(
+                          children: [
+                            Text("New Charcter added!"),
+                            Text("jim239 created a new character!")
+                          ],
+                        )
+
+                      ],
+
+                    ),
+                  );
+                }
+              ),
+            ),
+            SizedBox(height: 40,),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Text("Upcoming Sessions",
+                  style: TextStyle(fontSize: 30),),
+              ),
+            ),
           ],
+
         )
-      ),
-    );
+      )
+      );
   }
 }
