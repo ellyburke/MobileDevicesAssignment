@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   // Pages list for navigation
   List<Map<String, dynamic>> pages = [
-    {'title': 'Characters', 'icon':Icons.add},
+    {'title': 'Characters', 'icon':Icons.add, 'screen': CharacterPage()},
     {'title': 'Game Info', 'icon':Icons.shield},
     {'title': 'Friends', 'icon':Icons.people, 'screen': FriendsPage()},
     {'title': 'Sessions', 'icon':Icons.calendar_month},
@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
     // Building the homepage
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red,
+        backgroundColor: Color(0xFFA23E2E),
         title: Text("D&D Companion App"),
         actions: [
           IconButton(onPressed: null, icon: Icon(Icons.account_circle)),
@@ -78,11 +78,16 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                    onPressed: (){}, 
+                    onPressed: (){
+                      Navigator.push( context,
+                          MaterialPageRoute(builder: (context) => CharacterPage())
+                      );
+                    },
                     child: Column(
                       children: [
-                        Icon(pages[0]['icon']),
-                        Text(pages[0]['title'])
+                        Icon(pages[0]['icon'], size: 35, color: Color(0xFF6B4E24)),
+                        Text(pages[0]['title'],
+                            style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)))
                       ],
                     ),
                 ),
@@ -96,8 +101,9 @@ class _HomePageState extends State<HomePage> {
                   onPressed: (){},
                   child: Column(
                     children: [
-                      Icon(pages[1]['icon']),
-                      Text(pages[1]['title'])
+                      Icon(pages[1]['icon'], size: 35, color: Color(0xFF6B4E24)),
+                      Text(pages[1]['title'],
+                          style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)))
                     ],
                   ),
                 )
@@ -121,8 +127,9 @@ class _HomePageState extends State<HomePage> {
                   },
                   child: Column(
                     children: [
-                      Icon(pages[2]['icon']),
-                      Text(pages[2]['title'])
+                      Icon(pages[2]['icon'], size: 35, color: Color(0xFF6B4E24),),
+                      Text(pages[2]['title'],
+                        style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),)
                     ],
                   ),
                 ),
@@ -140,8 +147,9 @@ class _HomePageState extends State<HomePage> {
                     },
                   child: Column(
                     children: [
-                      Icon(pages[3]['icon']),
-                      Text(pages[3]['title'])
+                      Icon(pages[3]['icon'], size: 35, color: Color(0xFF6B4E24)),
+                      Text(pages[3]['title'],
+                          style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)))
                     ],
                   ),
                 )
@@ -157,37 +165,37 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             // A Container that holds any notifications the user has missed
-            Container(
-              padding: EdgeInsets.only(left: 20, right: 20, top: 10),
-              height: 300,
-              child: ListView.builder(
-                itemCount: 10,
-                itemBuilder: (context, index){
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 40,
-                          color: Colors.lightBlue,
-                        ),
-                        Column(
-                          children: [
-                            Text("New Charcter added!"),
-                            Text("jim239 created a new character!")
-                          ],
-                        )
-
-                      ],
-
-                    ),
-                  );
-                }
-              ),
-            ),
+            // Container(
+            //   padding: EdgeInsets.only(left: 20, right: 20, top: 10),
+            //   height: 300,
+            //   child: ListView.builder(
+            //     itemCount: 10,
+            //     itemBuilder: (context, index){
+            //       return Card(
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.zero,
+            //         ),
+            //         child: Row(
+            //           children: [
+            //             Container(
+            //               width: 10,
+            //               height: 40,
+            //               color: Colors.lightBlue,
+            //             ),
+            //             Column(
+            //               children: [
+            //                 Text("New Charcter added!"),
+            //                 Text("jim239 created a new character!")
+            //               ],
+            //             )
+            //
+            //           ],
+            //
+            //         ),
+            //       );
+            //     }
+            //   ),
+            // ),
             SizedBox(height: 40,),
             Align(
               alignment: Alignment.centerLeft,
