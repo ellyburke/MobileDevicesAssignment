@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 class Character {
+  int? id;
   int hp;
   int strength;
   int dexterity;
@@ -8,186 +11,141 @@ class Character {
   int charisma;
   String name;
   String race;
-
-  //Map with class as the key and level of that class as value (FOR MULTICLASS)
-  //{Fighter(Champion):8, Thief(Assassin):1)
-  Map<String, int> charClass;
   int level;
-  String background;
   int armorClass;
-
-  //Map with skills as key and bonus as the value
-  //{Stealth:2, Insight:1}
-  Map<String, int> skills;
   int initiative;
   int speed;
+  int passivePerception;
+  String background;
   String alignment;
+  String? appearance;
 
-  //List of all features for character
+  Map<String, int> charClass;
+  Map<String, int> skills;
+  Map<String, int>? inventory;
+  Map<String, int>? spellCastingAbility;
+  Map<String, int>? spellSlots;
+
   List<String> features;
   List<String> traits;
   List<String> classFeatures;
-  int passivePerception;
   List<String>? equipment;
-
-  //{'gold':x, 'platinum':y, 'health potions':z}
-  Map<String, int>? inventory;
   List<String> proficiencies;
   List<String> languages;
   List<String>? spells;
 
-  //{'SpellCasting Modifier':x, 'Spell Save DC':y, 'Spell Attack Bonus':z}
-  Map<String, int>? spellCastingAbility;
+  Character({
+    this.id,
+    required this.hp,
+    required this.strength,
+    required this.dexterity,
+    required this.intelligence,
+    required this.constitution,
+    required this.wisdom,
+    required this.charisma,
+    required this.name,
+    required this.race,
+    required this.level,
+    required this.armorClass,
+    required this.initiative,
+    required this.speed,
+    required this.passivePerception,
+    required this.background,
+    required this.alignment,
+    required this.charClass,
+    required this.skills,
+    required this.features,
+    required this.traits,
+    required this.classFeatures,
+    required this.proficiencies,
+    required this.languages,
+    this.inventory,
+    this.equipment,
+    this.spells,
+    this.spellCastingAbility,
+    this.spellSlots,
+    this.appearance,
+  });
 
-  //{'Level 1':x, 'Level 2':y, 'Level 3':z, 'Level 4':a, 'Level 5':b}
-  Map<String, int>? spellSlots;
-  String? appearance;
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'race': race,
+      'background': background,
+      'alignment': alignment,
+      'appearance': appearance,
+      'level': level,
+      'hp': hp,
+      'strength': strength,
+      'dexterity': dexterity,
+      'constitution': constitution,
+      'intelligence': intelligence,
+      'wisdom': wisdom,
+      'charisma': charisma,
+      'armor_class': armorClass,
+      'initiative': initiative,
+      'speed': speed,
+      'passive_perception': passivePerception,
+      'char_class': jsonEncode(charClass),
+      'skills': jsonEncode(skills),
+      'features': jsonEncode(features),
+      'traits': jsonEncode(traits),
+      'class_features': jsonEncode(classFeatures),
+      'equipment': jsonEncode(equipment),
+      'inventory': jsonEncode(inventory),
+      'proficiencies': jsonEncode(proficiencies),
+      'languages': jsonEncode(languages),
+      'spells': jsonEncode(spells),
+      'spell_casting_ability': jsonEncode(spellCastingAbility),
+      'spell_slots': jsonEncode(spellSlots),
+    };
+  }
 
+  factory Character.fromMap(Map<String, dynamic> map) {
+    return Character(
+      id: map['id'] as int?,
+      name: map['name'] ?? '',
+      race: map['race'] ?? '',
+      background: map['background'] ?? '',
+      alignment: map['alignment'] ?? '',
+      appearance: map['appearance'],
+      level: map['level'] ?? 1,
+      hp: map['hp'] ?? 0,
+      strength: map['strength'] ?? 0,
+      dexterity: map['dexterity'] ?? 0,
+      constitution: map['constitution'] ?? 0,
+      intelligence: map['intelligence'] ?? 0,
+      wisdom: map['wisdom'] ?? 0,
+      charisma: map['charisma'] ?? 0,
+      armorClass: map['armor_class'] ?? 10,
+      initiative: map['initiative'] ?? 0,
+      speed: map['speed'] ?? 30,
+      passivePerception: map['passive_perception'] ?? 10,
+      charClass: _decodeMap(map['char_class']),
+      skills: _decodeMap(map['skills']),
+      features: _decodeList(map['features']),
+      traits: _decodeList(map['traits']),
+      classFeatures: _decodeList(map['class_features']),
+      proficiencies: _decodeList(map['proficiencies']),
+      languages: _decodeList(map['languages']),
+      inventory: _decodeMapNullable(map['inventory']),
+      equipment: _decodeListNullable(map['equipment']),
+      spells: _decodeListNullable(map['spells']),
+      spellCastingAbility: _decodeMapNullable(map['spell_casting_ability']),
+      spellSlots: _decodeMapNullable(map['spell_slots']),
+    );
+  }
 
-  Character(
-      this.hp,
-      this.strength,
-      this.dexterity,
-      this.intelligence,
-      this.constitution,
-      this.wisdom,
-      this.charisma,
-      this.name,
-      this.race,
-      this.speed,
-      this.charClass,
-      this.level,
-      this.background,
-      this.armorClass,
-      this.skills,
-      this.initiative,
-      this.alignment,
-      this.features,
-      this.traits,
-      this.classFeatures,
-      this.passivePerception,
-      List<String> this.equipment,
-      Map<String, int> this.inventory,
-      this.proficiencies,
-      this.languages,
-      List<String> this.spells,
-      Map<String, int> this.spellCastingAbility,
-      Map<String, int> this.spellSlots,
-      String this.appearance
-      );
+  static Map<String, int> _decodeMap(dynamic data) =>
+      Map<String, int>.from(jsonDecode(data ?? '{}'));
 
-  int getStrength() {return strength;}
+  static Map<String, int>? _decodeMapNullable(dynamic data) =>
+      data == null ? null : Map<String, int>.from(jsonDecode(data));
 
-  int getDexterity() {return dexterity;}
+  static List<String> _decodeList(dynamic data) =>
+      List<String>.from(jsonDecode(data ?? '[]'));
 
-  int getIntelligence() {return intelligence;}
-
-  int getConstitution() { return constitution; }
-
-  int getWisdom() { return wisdom; }
-
-  int getCharisma() { return charisma; }
-
-  int getSpeed() { return speed; }
-
-  int getInitiative() { return initiative; }
-
-  int getArmorClass() { return armorClass; }
-
-  int getPassivePerception() { return passivePerception; }
-
-  int getHP() { return hp; }
-
-  String getName() { return name; }
-
-  String getRace() { return race; }
-  
-  String getBackground() { return background; }
-
-  String getAlignment() { return alignment; }
-
-  String? getAppearance() { return appearance; }
-  
-  Map<String, int>? getSpellSlots() { return spellSlots; }
-  
-  Map<String, int>? getSpellCastingAbility() { return spellCastingAbility; }
-  
-  List<String>? getSpells() { return spells; }
-  
-  Map<String, int> getClass() { return charClass; }
-  
-  List<String>? getEquipment() { return equipment; }
-  
-  Map<String, int>? getInventory() { return inventory; }
-  
-  List<String> getLanguages() { return languages; }
-  
-  List<String> getProficiencies() { return proficiencies; }
-  
-  Map<String, int> getSkills() { return skills; }
-  
-  List<String> getTraits() { return traits; }
-  
-  List<String> getFeatures() { return features; }
-  
-  List<String> getClassFeatures() { return classFeatures; }
-  
-  void setHP(int newHP) { hp = newHP; }
-  
-  void levelUp() { level++; }
-  
-  void setAC(int newAC) { armorClass = newAC; }
-  
-  void setInitiative(int newInitiative) { initiative = newInitiative; }
-  
-  void setRace(String newRace) { race = newRace; }
-  
-  void setSpeed(int newSpeed) { speed = newSpeed; }
-  
-  void setPassivePerception(int newPassivePerception) { passivePerception = newPassivePerception; }
-  
-  void setAppearance(String newAppearance) { appearance = newAppearance; }
-  
-  void setAlignment(String newAlignment) { alignment = newAlignment; }
-  
-  void setBackground(String newBackground) { background = newBackground; }
-  
-  void setClass(Map<String, int> newClass) { charClass = newClass; }
-  
-  void setEquipment(List<String> newEquipment) { equipment = newEquipment; }
-  
-  void setFeatures(List<String> newFeatures) { features = newFeatures; }
-  
-  void setStrength(int newStrength) { strength = newStrength; }
-
-  void setDexterity(int newDexterity) { dexterity = newDexterity; }
-  
-  void setIntelligence(int newIntelligence) { intelligence = newIntelligence; }
-
-  void setConstitution(int newConstitution) { constitution = newConstitution; }
-  
-  void setWisdom(int newWisdom) { wisdom = newWisdom; }
-  
-  void setCharisma(int newCharisma) { charisma = newCharisma; }
-  
-  void setName(String newName) { name = newName; }
-  
-  void setSkills(Map<String, int> newSkills) { skills = newSkills; }
-  
-  void setTraits(List<String> newTraits) { traits = newTraits; }
-  
-  void setClassFeatures(List<String> newClassFeatures) { classFeatures = newClassFeatures; }
-  
-  void setInventory(Map<String, int> newInventory) { inventory = newInventory; }
-
-  void setLanguages(List<String> newLanguages) { languages = newLanguages; }
-  
-  void setProficiencies(List<String> newProficiencies) { proficiencies = newProficiencies; }
-  
-  void setSpells(List<String> newSpells) { spells = newSpells; }
-
-  void setSpellCastingAbility(Map<String, int> newSpellCastingAbility) { spellCastingAbility = newSpellCastingAbility; }
-  
-  void setSpellSlots(Map<String, int> newSpellSlots) { spellSlots = newSpellSlots; }
-  
+  static List<String>? _decodeListNullable(dynamic data) =>
+      data == null ? null : List<String>.from(jsonDecode(data));
 }
