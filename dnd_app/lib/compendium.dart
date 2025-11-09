@@ -4,7 +4,7 @@ Widget for the compendium page
 
 import 'package:flutter/material.dart';
 import 'package:fluttericon/rpg_awesome_icons.dart';
-import 'compendiumPage.dart';
+import 'compendium_page.dart';
 
 void main() => runApp(const MyApp());
 
@@ -35,36 +35,12 @@ class CompendiumState extends State<Compendium> {
   // int _selectedIndex = 0;
 
   final List<Widget> _compendiumButtons = <Widget>[
-    CompendiumButton(
-      text: "Races",
-      color: Colors.orange,
-      icon: RpgAwesome.double_team,
-    ),
-    CompendiumButton(
-      text: "Backgrounds",
-      color: Colors.yellow,
-      icon: RpgAwesome.castle_emblem,
-    ),
-    CompendiumButton(
-      text: "Classes",
-      color: Colors.green,
-      icon: RpgAwesome.shield,
-    ),
-    CompendiumButton(
-      text: "Spells",
-      color: Colors.blue,
-      icon: RpgAwesome.fairy_wand,
-    ),
-    CompendiumButton(
-      text: "Items",
-      color: Colors.indigo,
-      icon: RpgAwesome.gem_pendant,
-    ),
-    CompendiumButton(
-      text: "Monsters",
-      color: Colors.purple,
-      icon: RpgAwesome.eye_monster,
-    ),
+    CompendiumButton(label: "Races", icon: RpgAwesome.double_team),
+    CompendiumButton(label: "Backgrounds", icon: RpgAwesome.castle_emblem),
+    CompendiumButton(label: "Classes", icon: RpgAwesome.shield),
+    CompendiumButton(label: "Spells", icon: RpgAwesome.fairy_wand),
+    CompendiumButton(label: "Equipment", icon: RpgAwesome.gem_pendant),
+    CompendiumButton(label: "Monsters", icon: RpgAwesome.eye_monster),
   ];
 
   @override
@@ -73,7 +49,7 @@ class CompendiumState extends State<Compendium> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            print("I want to go home");
+            // print("I want to go home");
           },
           icon: Icon(Icons.home, color: Colors.white),
         ),
@@ -100,16 +76,10 @@ class CompendiumState extends State<Compendium> {
 }
 
 class CompendiumButton extends StatefulWidget {
-  final String text;
-  final MaterialColor color;
+  final String label;
   final IconData icon;
 
-  const CompendiumButton({
-    super.key,
-    required this.text,
-    required this.color,
-    required this.icon,
-  });
+  const CompendiumButton({super.key, required this.label, required this.icon});
 
   @override
   CompendiumButtonState createState() => CompendiumButtonState();
@@ -128,7 +98,8 @@ class CompendiumButtonState extends State<CompendiumButton> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CompendiumPage(),
+                builder: (context) =>
+                    CompendiumPage(category: widget.label.toLowerCase()),
               ), // Navigates to the FormPage when pressed
             );
           },
@@ -145,7 +116,7 @@ class CompendiumButtonState extends State<CompendiumButton> {
               children: [
                 Icon(widget.icon, color: Colors.white),
                 SizedBox(height: 10),
-                Text(widget.text, style: TextStyle(color: Colors.white)),
+                Text(widget.label, style: TextStyle(color: Colors.white)),
               ],
             ),
           ),
