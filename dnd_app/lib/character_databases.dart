@@ -70,7 +70,7 @@ class CharacterDatabase {
   Future<List<Character>> readAllCharacters() async {
     final db = await instance.database;
     final result = await db.query('characters');
-    return result.map((json) => Character.fromMap(json)).toList();
+    return result.map((map) => Character.fromMap(map)).toList();
   }
 
   Future<int> update(Character character) async {
