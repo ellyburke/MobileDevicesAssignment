@@ -1,9 +1,14 @@
 // Characters Screen
 
 import 'package:flutter/material.dart';
-import 'package:dnd_app/screens/friends.dart';
-import 'package:dnd_app/screens/characters.dart';
-import 'package:dnd_app/screens/sessions.dart';
+import 'package:dnd_app/screens/newcharacterform.dart';
+
+
+//  Database imports
+import 'package:dnd_app/character databases.dart';
+
+// Model imports
+import 'package:dnd_app/backEnd.dart';
 
 class CharacterPage extends StatefulWidget {
   const CharacterPage({super.key});
@@ -15,17 +20,14 @@ class CharacterPage extends StatefulWidget {
 class _CharacterPageState extends State<CharacterPage>
 {
 
-  // Dummy for testing
-  final Map<String, dynamic> character = {
-    'name': 'Aelar Stormwind',
-    'level': 5,
-    'race': 'Half-Elf',
-    'background': 'Outlander',
-    'hp': 45,
-    'wisdom': 14, // Modifier +2
-    'speed': '30 ft',
-    'initiative': '+3',
-  };
+  // Get the list of characters from the database
+  late Future<List<Character>> characterList = CharacterDatabase.instance.readAllCharacters();
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   // NOTE: For the characters tab, just change the data you are pulling
 
@@ -36,7 +38,28 @@ class _CharacterPageState extends State<CharacterPage>
         child: Scaffold(
           appBar: AppBar(
               actions: [
-                TextButton(onPressed: null,
+                TextButton(
+                    onPressed: () async {
+                      // Navigate to new character form
+                      final newCharacter = await Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (context) => NewCharacterForm()
+                      ));
+
+                      print(newCharacter);
+
+                      // Add character to the database if not null
+                      if (newCharacter != null){
+                        await CharacterDatabase.instance.create(newCharacter);
+                        final refreshedList = CharacterDatabase.instance.readAllCharacters();
+                        characterList = refreshedList;
+                      }
+
+                      // Refresh list
+                      setState(() {
+                        print(characterList);
+                      });
+                    },
                     child: Row(
                       children: [
                         Icon(Icons.add, color: Colors.black,),
@@ -92,42 +115,76 @@ class _CharacterPageState extends State<CharacterPage>
           // ============================
           body: TabBarView(
               children: [
-                ListView.builder(
-                    itemCount: 4,
-                    itemBuilder: (context, index){
-                      return Card(
-                          margin: EdgeInsets.only(left: 20, right: 20, top: 20),
-                          color: Colors.grey,
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(character['name'],
-                                      style: TextStyle(fontSize: 25) ,),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text('Level ${character['level'].toString()}\t|\t${character['race']}',
-                                      style: TextStyle(fontSize: 15),),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text('${character['hp'].toString()} HP\t|\t'
-                                        '${character['speed']} SPD\t|\t'
-                                        '${character['initiative']} INIT\t|\t'
-                                        '${character['wisdom']} WDM',
-                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
-                                  ],
-                                ),
-                              ],
-                            ) ,
-                          )
-                      );
-                    })
+                FutureBuilder(
+                    future: characterList,
+                    builder: (context, snapshot){
+                      print(characterList);
+                      // While waiting for connection
+                      if (snapshot.connectionState ==  ConnectionState.waiting){
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      // If error
+                      if (snapshot.hasError){
+                        print(snapshot.error);
+                        return Center(
+                          child: Text("Error has occured"),
+                        );
+                      }
+
+                      // If there are no characters in the database, return
+                      if (!snapshot.hasData){
+                        return Center(
+                          child: Text("No characters in the database:("),
+                        );
+                      }
+                      // To make the data a list for itemCount
+                      final characters = snapshot.data!;
+                      return ListView.builder(
+                          itemCount: characters.length,
+                          itemBuilder: (context, index){
+                            // Display each character one at a time
+                            final character = characters[index];
+                            return Card(
+                                margin: EdgeInsets.only(left: 20, right: 20, top: 20),
+                                color: Colors.grey,
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(character.name,
+                                            style: TextStyle(fontSize: 25) ,),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('Level ${character.level.toString()}\t|\t${character.race}',
+                                            style: TextStyle(fontSize: 15),),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('${character.hp.toString()} HP\t|\t'
+                                              '${character.speed} SPD\t|\t'
+                                              '${character.initiative} INIT\t|\t'
+                                              '${character.wisdom} WDM',
+                                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
+                                        ],
+                                      ),
+                                    ],
+                                  ) ,
+                                )
+                            );
+                          });
+                    }
+                ),
+
+                Center(
+                    child: Text("You have no friends yet:("))
               ]
           ),
 
