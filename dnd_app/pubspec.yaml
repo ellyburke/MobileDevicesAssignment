@@ -30,14 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^2.4.2
+  sqflite: ^2.3.3
   path: ^1.9.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  fluttericon: ^2.0.0
-  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:
@@ -89,9 +87,5 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  fonts:
-    - family: RpgAwesome
-      fonts:
-        - asset: assets/fonts/RpgAwesome.ttf
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
