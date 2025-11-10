@@ -23,9 +23,6 @@ class _CharacterPageState extends State<CharacterPage>
   // Get the list of characters from the database
   late Future<List<Character>> characterList = CharacterDatabase.instance.readAllCharacters();
 
-  // To select a character
-  int? _selectedIndex;
-  Character? _selectedCharacter;
 
   @override
   void initState() {
@@ -150,105 +147,38 @@ class _CharacterPageState extends State<CharacterPage>
                           itemBuilder: (context, index){
                             // Display each character one at a time
                             final character = characters[index];
-                            return GestureDetector(
-                                onDoubleTap: (){
-                                  _selectedIndex = index;
-                                  _selectedCharacter = character;
-
-                                  showDialog(context: context,
-                                      builder: (context){
-                                        return SingleChildScrollView(
-                                          child: Dialog(
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                            child: Padding(
-                                                padding: EdgeInsets.all(20),
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                  children: [
-                                                    Center(
-                                                      child: Text(
-                                                        "Character Details",
-                                                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 16),
-
-                                                    Text("🧙 Name: ${character.name}", style: TextStyle(fontSize: 18)),
-                                                    Text("🧬 Race: ${character.race}", style: TextStyle(fontSize: 16)),
-                                                    Text("🎓 Level: ${character.level}", style: TextStyle(fontSize: 16)),
-                                                    Text("🎭 Background: ${character.background}", style: TextStyle(fontSize: 16)),
-                                                    Text("⚖️ Alignment: ${character.alignment}", style: TextStyle(fontSize: 16)),
-
-                                                    SizedBox(height: 12),
-                                                    Text("❤️ HP: ${character.hp}", style: TextStyle(fontSize: 16)),
-                                                    Text("🛡 Armor Class: ${character.armorClass}", style: TextStyle(fontSize: 16)),
-                                                    Text("⚡ Initiative: ${character.initiative}", style: TextStyle(fontSize: 16)),
-                                                    Text("🏃 Speed: ${character.speed}", style: TextStyle(fontSize: 16)),
-                                                    Text("👁 Passive Perception: ${character.passivePerception}", style: TextStyle(fontSize: 16)),
-
-                                                    SizedBox(height: 12),
-                                                    Text("💪 Strength: ${character.strength}"),
-                                                    Text("🏹 Dexterity: ${character.dexterity}"),
-                                                    Text("🧠 Intelligence: ${character.intelligence}"),
-                                                    Text("🫁 Constitution: ${character.constitution}"),
-                                                    Text("🦉 Wisdom: ${character.wisdom}"),
-                                                    Text("🎤 Charisma: ${character.charisma}"),
-
-                                                    SizedBox(height: 12),
-                                                    if (character.appearance != null && character.appearance!.isNotEmpty)
-                                                      Text("✨ Appearance: ${character.appearance}"),
-
-                                                    SizedBox(height: 16),
-                                                    Align(
-                                                      alignment: Alignment.centerRight,
-                                                      child: TextButton(
-                                                        onPressed: () => Navigator.pop(context),
-                                                        child: Text("Close"),
-                                                      ),
-                                                    ),
-                                                  ],
-
-                                            ),
-                                            )
-
-                                          ),
-                                        );
-                                      });
-                                },
-                                child: Card(
-                                    margin: EdgeInsets.only(left: 20, right: 20, top: 20),
-                                    color: Colors.grey,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(20),
-                                      child: Column(
+                            return Card(
+                                margin: EdgeInsets.only(left: 20, right: 20, top: 20),
+                                color: Colors.grey,
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
-                                            children: [
-                                              Text(character.name,
-                                                style: TextStyle(fontSize: 25) ,),
-                                            ],
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text('Level ${character.level.toString()}\t|\t${character.race}',
-                                                style: TextStyle(fontSize: 15),),
-                                            ],
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text('${character.hp.toString()} HP\t|\t'
-                                                  '${character.speed} SPD\t|\t'
-                                                  '${character.initiative} INIT\t|\t'
-                                                  '${character.wisdom} WDM',
-                                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
-                                            ],
-                                          ),
+                                          Text(character.name,
+                                            style: TextStyle(fontSize: 25) ,),
                                         ],
-                                      ) ,
-                                    )
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('Level ${character.level.toString()}\t|\t${character.race}',
+                                            style: TextStyle(fontSize: 15),),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text('${character.hp.toString()} HP\t|\t'
+                                              '${character.speed} SPD\t|\t'
+                                              '${character.initiative} INIT\t|\t'
+                                              '${character.wisdom} WDM',
+                                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
+                                        ],
+                                      ),
+                                    ],
+                                  ) ,
                                 )
                             );
-
                           });
                     }
                 ),

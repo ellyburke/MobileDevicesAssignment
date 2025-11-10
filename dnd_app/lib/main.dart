@@ -5,22 +5,9 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 
-// Notifications import
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:dnd_app/notifications.dart';
-
-// Time zone
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('America/Toronto')); // adjust for your timezone
-
-  runApp(MyApp());
+void main() {
+  runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -38,6 +25,15 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -51,11 +47,6 @@ class _HomePageState extends State<HomePage> {
     {'title': 'Friends', 'icon':Icons.people, 'screen': FriendsPage()},
     {'title': 'Sessions', 'icon':Icons.calendar_month},
   ];
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {

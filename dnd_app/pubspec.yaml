@@ -39,10 +39,6 @@ dependencies:
   fluttericon: ^2.0.0
   http: ^1.5.0
 
-  # Notifications dependency
-  flutter_local_notifications: ^17.2.0
-  timezone: ^0.9.3
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
