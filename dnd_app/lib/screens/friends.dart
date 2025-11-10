@@ -13,13 +13,17 @@ class _FriendsPageState extends State<FriendsPage>{
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.red,
-          title: Text("Friends Page"),
+          backgroundColor: Color(0xFFA23E2E),
+          title: Text("Friends"),
           actions: [
             IconButton(onPressed: null, icon: Icon(Icons.account_circle)),
             IconButton(onPressed: null, icon: Icon(Icons.logout))
           ],
         ),
+      body: Center(
+        child: Text("Friend page coming soon!",
+          style: TextStyle(fontSize: 20),),
+      ),
     );
   }
 }

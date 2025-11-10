@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
   // Pages list for navigation
   List<Map<String, dynamic>> pages = [
     {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
-    {'title': 'Game Info', 'icon': Icons.shield},
+    {'title': 'Compendium', 'icon': Icons.shield},
     {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage()},
     {'title': 'Sessions', 'icon': Icons.calendar_month},
   ];
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
-            Text("Welcome, John", style: TextStyle(fontSize: 30)),
+            Text("Welcome, User", style: TextStyle(fontSize: 30)),
             // Idea: have the title change greetings based on the time of day
             SizedBox(height: 40),
             Row(
