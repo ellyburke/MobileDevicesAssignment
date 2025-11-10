@@ -5,19 +5,7 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 
-// Notifications import
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:dnd_app/notifications.dart';
-
-// Time zone
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
-
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('America/Toronto')); // adjust for your timezone
-
   runApp(MyApp());
 }
 

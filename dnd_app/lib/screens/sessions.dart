@@ -4,17 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:dnd_app/calendarDatabase.dart';
 import 'package:flutter/rendering.dart';
 
-// For notifications
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:dnd_app/notifications.dart';
-import 'package:timezone/timezone.dart'; // Import to handle scheduling notifications
-
-// Time zones
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
-
-final Notifications _notifications = Notifications();
-
 class SessionsPage extends StatefulWidget{
   const SessionsPage({super.key});
 
@@ -63,18 +52,7 @@ class _SessionsPageState extends State<SessionsPage>{
     // NOTE: return int as a status code for snackbars
     if (result != null && result != 0){
       // Result was valid, so we create a new session in the database
-
       addSession(result);
-
-      // Trigger notifications
-      final now = DateTime.now().toUtc();
-      final triggerTime = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 3));
-      _notifications.sendNotificationLater(
-          "New Session created",
-          "There has been a new session created",
-          "New Session",
-          triggerTime
-      );
       return 1;
     }
     // If user exits
@@ -85,19 +63,6 @@ class _SessionsPageState extends State<SessionsPage>{
     else{
       return -1;
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _notifications.init();
-
-    _notifications.sendNotificationNow(
-      "Test Notification",
-      "If you see this, notifications are working!",
-      "test_payload",
-    );
-
   }
 
   @override
@@ -145,23 +110,6 @@ class _SessionsPageState extends State<SessionsPage>{
                         }
 
                       }
-
-                      // // Step 1: Create a SnackBar widget with text and an optional action button
-                      // final snackbar = SnackBar(
-                      //   content: Text('Event Created'), // The message shown in the Snackbar
-                      //
-                      //   // The action button that appears on the right side of the Snackbar
-                      //   action: SnackBarAction(
-                      //     label: 'Undo', // The text for the action button
-                      //     onPressed: () {
-                      //       // Code inside here runs when the user taps 'Undo'
-                      //       print('Undo action');},
-                      //   ),
-                      // );
-                      //
-                      //   // Step 2: Use ScaffoldMessenger to show the Snackbar in the current context
-                      //   ScaffoldMessenger.of(context).showSnackBar(snackbar);
-
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
