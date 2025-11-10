@@ -39,26 +39,23 @@ class _CharacterPageState extends State<CharacterPage>
           appBar: AppBar(
               actions: [
                 TextButton(
-                    onPressed: () async {
-                      // Navigate to new character form
-                      final newCharacter = await Navigator.push(context,
-                        MaterialPageRoute(
-                            builder: (context) => NewCharacterForm()
-                      ));
-
-                      print(newCharacter);
-
-                      // Add character to the database if not null
-                      if (newCharacter != null){
-                        await CharacterDatabase.instance.create(newCharacter);
-                        final refreshedList = CharacterDatabase.instance.readAllCharacters();
-                        characterList = refreshedList;
-                      }
-
-                      // Refresh list
-                      setState(() {
-                        print(characterList);
-                      });
+                    onPressed: () { // async
+                      null;
+                      // // Navigate to new character form
+                      // final newCharacter = await Navigator.push(context,
+                      //   MaterialPageRoute(
+                      //       builder: (context) => NewCharacterForm()
+                      // ));
+                      //
+                      // // Add character to the database if not null
+                      // setState(() async {
+                      //   if (newCharacter != null){
+                      //     await CharacterDatabase.instance.create(newCharacter);
+                      //     // Refresh list
+                      //     final refreshedList = CharacterDatabase.instance.readAllCharacters();
+                      //     characterList = refreshedList;
+                      //   }
+                      // });
                     },
                     child: Row(
                       children: [
