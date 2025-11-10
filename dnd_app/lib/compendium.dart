@@ -6,24 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttericon/rpg_awesome_icons.dart';
 import 'compendium_page.dart';
 
-void main() => runApp(const MyApp());
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Compendium',
-      theme: ThemeData(
-        scaffoldBackgroundColor: Color(0xFFF4EBD0),
-        appBarTheme: AppBarTheme(backgroundColor: Color(0xFFA23E2E)),
-      ),
-      home: Compendium(),
-    );
-  }
-}
-
 class Compendium extends StatefulWidget {
   const Compendium({super.key});
 
@@ -32,8 +14,6 @@ class Compendium extends StatefulWidget {
 }
 
 class CompendiumState extends State<Compendium> {
-  // int _selectedIndex = 0;
-
   final List<Widget> _compendiumButtons = <Widget>[
     CompendiumButton(label: "Races", icon: RpgAwesome.double_team),
     CompendiumButton(label: "Backgrounds", icon: RpgAwesome.castle_emblem),
@@ -46,18 +26,7 @@ class CompendiumState extends State<Compendium> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            // print("I want to go home");
-          },
-          icon: Icon(Icons.home, color: Colors.white),
-        ),
-        title: Text(
-          "Compendium",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
+      appBar: AppBar(title: Text("Compendium")),
       body: Center(
         child: GridView.count(
           primary: false,
