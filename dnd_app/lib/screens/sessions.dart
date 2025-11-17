@@ -10,6 +10,15 @@ import 'package:permission_handler/permission_handler.dart'; // For managing per
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
 
+bool _tzReady = false;
+
+Future<void> _ensureTz() async {
+  if (_tzReady) return;
+  tzdata.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('America/Toronto')); // simple & reliable
+  _tzReady = true;
+}
+
 class SessionsPage extends StatefulWidget {
   const SessionsPage({super.key});
 
@@ -18,8 +27,9 @@ class SessionsPage extends StatefulWidget {
 }
 
 class _SessionsPageState extends State<SessionsPage> {
-  late Future<List<CalendarEvent>> eventsList = CalendarDatabase.instance
-      .getAllEvents();
+  //bool _tzReady = false;
+
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   final Map<int, String> _monthsMap = {
     1: 'Jan',
@@ -36,307 +46,20 @@ class _SessionsPageState extends State<SessionsPage> {
     12: 'Dec',
   };
 
-  // Adds new session
-  void addSession(CalendarEvent event) async {
-    // Add session to the database
-    final newEvent = CalendarEvent(
-      date: event.date,
-      time: event.time,
-      attendees: event.attendees,
-    );
-    await CalendarDatabase.instance.insert(newEvent);
-    final refreshedList = CalendarDatabase.instance.getAllEvents();
+  late Future<List<CalendarEvent>> eventsList = CalendarDatabase.instance
+      .getAllEvents();
 
-    setState(() {
-      eventsList = refreshedList;
-    });
-  }
-
-  int daysUntil(CalendarEvent event) {
-    final now = DateTime.now();
-    final targetDate = event.date;
-
-    return targetDate.difference(now).inDays;
-  }
-
-  Future<int> _openDialog() async {
-    final result = await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return NewSessionDialog();
-      },
-    );
-
-    // NOTE: return int as a status code for snackbars
-    if (result != null && result != 0) {
-      // Result was valid, so we create a new session in the database
-      addSession(result);
-      return 1;
-    }
-    // If user exits
-    else if (result == 0) {
-      return 0;
-    }
-    // If no date or time
-    else {
-      return -1;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Sessions"),
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Row(
-              children: [
-                Icon(Icons.add, color: Colors.black),
-                SizedBox(width: 5),
-                Text("Add availability", style: TextStyle(color: Colors.black)),
-              ],
-            ),
-          ),
-        ],
-      ),
-
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30),
-            child: ElevatedButton(
-              onPressed: () async {
-                // Show a CUSTOM dialog to enter the new session details
-                final status = await _openDialog();
-
-                // Show snackbars depending on status codes
-                if (status == 1) {
-                  setState(() {
-                    // Refresh list
-                    eventsList = CalendarDatabase.instance.getAllEvents();
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Session created successfully!"),
-                    ),
-                  );
-                } else {
-                  if (status == -1) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Session not created! Please select both a date and a time",
-                        ),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, color: Colors.black),
-                  SizedBox(width: 5),
-                  Text(
-                    "Create a new session",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          FutureBuilder(
-            future: eventsList,
-            builder: (context, snapshot) {
-              // While waiting for connection
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-
-              // If error
-              if (snapshot.hasError) {
-                return Center(child: Text("Error has occured"));
-              }
-
-              // If there are no events in the database, return
-              if (!snapshot.hasData) {
-                return Center(child: Text("No events in the database:("));
-              }
-
-              // To make the data a list for itemCount
-              final events = snapshot.data!;
-
-              return Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    // Display each character one at a time
-                    final event = events[index];
-                    return Card(
-                      elevation: 4,
-                      shadowColor: Colors.black26,
-                      color: Colors.grey.shade50,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Session ${event.id}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.shade600,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.15),
-                                        blurRadius: 4,
-                                        offset: Offset(2, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    'in ${daysUntil(event)} '
-                                    '${daysUntil(event) == 1 ? 'day' : 'days'}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 10),
-
-                            // Date
-                            Text(
-                              "${_monthsMap[event.date.month]} ${event.date.day}, ${event.date.year}",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-
-                            SizedBox(height: 4),
-
-                            // Time
-                            Text(
-                              "🕒  Time: ${event.time}",
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-
-                            // Attendees
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "👥  Attendees: ${event.attendees.join(', ')}",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    // Delete event
-                                    await CalendarDatabase.instance.deleteEvent(
-                                      event.id!,
-                                    );
-
-                                    // Refresh List
-                                    setState(() {
-                                      eventsList = CalendarDatabase.instance
-                                          .getAllEvents();
-                                    });
-                                  },
-                                  icon: Icon(Icons.delete),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ==================================
-// Dialog Box to create new session
-// ==================================
-
-class NewSessionDialog extends StatefulWidget {
-  const NewSessionDialog({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _NewSessionDialogState();
-}
-
-class _NewSessionDialogState extends State<NewSessionDialog> {
-  bool _tzReady = false;
-
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-
-  // Controller for attendees and attendee list
-  final _attendeeController = TextEditingController();
-  List<String> _attendees = [];
-
-  Future<void> _ensureTz() async {
-    if (_tzReady) return;
-    tzdata.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('America/Toronto')); // simple & reliable
-    _tzReady = true;
-  }
+  late Future<void> _initialization;
 
   @override
   void initState() {
     super.initState();
-    tzdata.initializeTimeZones();
+    eventsList = CalendarDatabase.instance.getAllEvents();
 
+    _initialization = initializeNotifications();
+  }
+
+  Future<void> initializeNotifications() async {
     // Initialize the notifications plugin
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -367,6 +90,15 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
       _requestNotificationPermission();
     }
   }
+  /*
+  Future<void> _ensureTz() async {
+    if (_tzReady) return;
+    tzdata.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('America/Toronto')); // simple & reliable
+    _tzReady = true;
+  }
+
+   */
 
   // Request permission for notifications on Android 13+
   Future<void> _requestNotificationPermission() async {
@@ -395,28 +127,15 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
 
     // Android 13+ runtime permission (safe if null)
     await androidPlugin?.requestNotificationsPermission();
-
-    // Immediate test notification so you can see it pop
-    await flutterLocalNotificationsPlugin.show(
-      9999,
-      'Test',
-      'If you see this, notifications are working',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_channel_id',
-          'Daily Notifications',
-          channelDescription: 'Daily notifications at specific times',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-      ),
-    );
   }
 
-  // Build the TZ time for the schedule
-  tz.TZDateTime getDate(DateTime date, String time) {
+  Future<void> showNotificationAtDateTime(DateTime date, String time) async {
+    _ensureTz();
     final hour = int.parse(time.substring(0, 2));
     final minute = int.parse(time.substring(3, 5));
+    print(hour);
+    print(minute);
+    print(tz.TZDateTime.now(tz.local));
     var scheduled = tz.TZDateTime(
       tz.local,
       date.year,
@@ -425,51 +144,355 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
       hour,
       minute,
     );
-
-    // Guard: if in the past, nudge forward 1 minute for testing
+    print(scheduled);
     final now = tz.TZDateTime.now(tz.local);
-    if (scheduled.isBefore(now)) {
-      scheduled = now.add(const Duration(minutes: 1));
+    if (scheduled.isBefore(now.add(const Duration(seconds: 5)))) {
+      scheduled = scheduled.add(const Duration(days: 1));
     }
-    return scheduled;
+    var difference = scheduled.difference(now);
+    print(difference);
+    print(difference.inSeconds);
+
+    // Delay the notification for 3 seconds
+    await Future.delayed(Duration(seconds: difference.inSeconds), () async {
+      // Define notification details for Android
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+            'your_channel_id', // Unique channel ID
+            'your_channel_name', // Name of the notification channel
+            channelDescription:
+                'your channel description', // Description of the channel
+            importance: Importance
+                .max, // High importance to display the notification immediately
+            priority: Priority.high, // High priority to pop-up the notification
+          );
+
+      // Combine the notification details into NotificationDetails
+      const NotificationDetails platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      final int id = ('${date.toIso8601String()} $time').hashCode & 0x7fffffff;
+
+      // Show the notification
+      await flutterLocalNotificationsPlugin.show(
+        id,
+        'It\'s time to play',
+        'It\'s time to play DnD', // Body of the notification
+        platformChannelSpecifics, // Notification details
+        payload:
+            'Notification Payload', // Optional payload for notification taps
+      );
+    });
   }
 
-  // One-time schedule (inexact for now—works without exact-alarm toggle)
-  Future<void> scheduleDailyNotification(DateTime date, String time) async {
-    await _ensureTz();
+  // Adds new session
+  void addSession(CalendarEvent event) async {
+    // Add session to the database
+    final newEvent = CalendarEvent(
+      date: event.date,
+      time: event.time,
+      attendees: event.attendees,
+    );
+    await CalendarDatabase.instance.insert(newEvent);
+    final refreshedList = CalendarDatabase.instance.getAllEvents();
 
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-          'daily_channel_id',
-          'Daily Notifications',
-          channelDescription: 'Daily notifications at specific times',
-          importance: Importance.max,
-          priority: Priority.high,
+    setState(() {
+      eventsList = refreshedList;
+    });
+  }
+
+  int daysUntil(CalendarEvent event) {
+    final now = DateTime.now();
+    final targetDate = event.date;
+
+    return targetDate.difference(now).inDays;
+  }
+
+  Future<CalendarEvent?> _openDialog() async {
+    final result = await showDialog<CalendarEvent>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const NewSessionDialog();
+      },
+    );
+    return result;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Wrap the entire Scaffold in a FutureBuilder
+    return FutureBuilder(
+      // It listens to the initialization future from initState
+      future: _initialization,
+      builder: (context, snapshot) {
+        // While waiting for initialization to complete, show a loading circle
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // If there was an error during initialization
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Text('Error initializing the app: ${snapshot.error}'),
+            ),
+          );
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: Text("Sessions"),
+            actions: [
+              TextButton(
+                onPressed: () {},
+                child: Row(
+                  children: [
+                    Icon(Icons.add, color: Colors.black),
+                    SizedBox(width: 5),
+                    Text(
+                      "Add availability",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          body: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // await _requestExactAlarmPermission();
+                    // Show a CUSTOM dialog to enter the new session details
+                    final event = await _openDialog();
+
+                    // Show snackbars depending on status codes
+                    if (event != null) {
+                      addSession(event);
+
+                      setState(() {
+                        // Refresh list
+                        eventsList = CalendarDatabase.instance.getAllEvents();
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Session created successfully!"),
+                        ),
+                      );
+                      await showNotificationAtDateTime(event.date, event.time);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Session not created! Please select both a date and a time",
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, color: Colors.black),
+                      SizedBox(width: 5),
+                      Text(
+                        "Create a new session",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              FutureBuilder(
+                future: eventsList,
+                builder: (context, snapshot) {
+                  // While waiting for connection
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  // If error
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error has occured"));
+                  }
+
+                  // If there are no events in the database, return
+                  if (!snapshot.hasData) {
+                    return Center(child: Text("No events in the database:("));
+                  }
+
+                  // To make the data a list for itemCount
+                  final events = snapshot.data!;
+
+                  return Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        // Display each character one at a time
+                        final event = events[index];
+                        return Card(
+                          elevation: 4,
+                          shadowColor: Colors.black26,
+                          color: Colors.grey.shade50,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header Row
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Session ${event.id}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade600,
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.15,
+                                            ),
+                                            blurRadius: 4,
+                                            offset: Offset(2, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        'in ${daysUntil(event)} '
+                                        '${daysUntil(event) == 1 ? 'day' : 'days'}',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                SizedBox(height: 10),
+
+                                // Date
+                                Text(
+                                  "${_monthsMap[event.date.month]} ${event.date.day}, ${event.date.year}",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+
+                                SizedBox(height: 4),
+
+                                // Time
+                                Text(
+                                  "🕒  Time: ${event.time}",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+
+                                // Attendees
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "👥  Attendees: ${event.attendees.join(', ')}",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () async {
+                                        // Delete event
+                                        await CalendarDatabase.instance
+                                            .deleteEvent(event.id!);
+
+                                        // Refresh List
+                                        setState(() {
+                                          eventsList = CalendarDatabase.instance
+                                              .getAllEvents();
+                                        });
+                                      },
+                                      icon: Icon(Icons.delete),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         );
-
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-    );
-
-    // Unique ID so events don’t overwrite each other
-    final int id = ('${date.toIso8601String()} $time').hashCode & 0x7fffffff;
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      'It\'s time to play',
-      'It\'s time to play DnD',
-      getDate(date, time),
-      platformChannelSpecifics,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      // one-time: do NOT set matchDateTimeComponents
+      },
     );
   }
+}
+
+// ==================================
+// Dialog Box to create new session
+// ==================================
+
+class NewSessionDialog extends StatefulWidget {
+  const NewSessionDialog({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _NewSessionDialogState();
+}
+
+class _NewSessionDialogState extends State<NewSessionDialog> {
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  String? errorMessage;
+
+  // Controller for attendees and attendee list
+  final _attendeeController = TextEditingController();
+  List<String> _attendees = [];
 
   void _pickDate() async {
     final date = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2025),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
@@ -477,19 +500,45 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
       setState(() {
         _selectedDate = date;
       });
+      validateDateTime();
     }
   }
 
   void _pickTime() async {
+    final now = DateTime.now();
+    final initialTime = TimeOfDay(hour: now.hour, minute: now.minute);
+
     final time = await showTimePicker(
       context: context,
-      initialTime: const TimeOfDay(hour: 12, minute: 0),
+      initialTime: initialTime,
     );
 
     if (time != null) {
       setState(() {
         _selectedTime = time;
       });
+      validateDateTime();
+    }
+  }
+
+  void validateDateTime() {
+    if (_selectedDate != null && _selectedTime != null) {
+      final selectedDateTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+      if (selectedDateTime.isBefore(DateTime.now())) {
+        setState(() {
+          errorMessage = "Please select a future date and time";
+        });
+      } else {
+        setState(() {
+          errorMessage = null;
+        });
+      }
     }
   }
 
@@ -525,14 +574,25 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
               onPressed: _pickDate,
               child: const Text("Pick Date"),
             ),
-            Text("Selected Date: ${_selectedDate}"),
+            Text(
+              "Selected Date: ${_selectedDate?.year}-${_selectedDate?.month}-${_selectedDate?.day}",
+            ),
 
             const SizedBox(height: 15),
             ElevatedButton(
               onPressed: _pickTime,
               child: const Text("Pick Time"),
             ),
-            Text("Selected Time: ${_selectedTime}"),
+
+            Text("Selected Time: ${_selectedTime?.format(context)}"),
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             const SizedBox(height: 15),
             Row(
               children: [
@@ -564,19 +624,24 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, 0), // exit code
+                  onPressed: () => Navigator.pop(context, null), // exit code
                   child: const Text("Exit"),
                 ),
                 TextButton(
-                  onPressed: () {
-                    if (_selectedTime == null || _selectedDate == null) {
-                      Navigator.pop(context, null);
+                  onPressed: () async {
+                    if (_selectedTime == null ||
+                        _selectedDate == null ||
+                        errorMessage != null) {
+                      return;
                     } else {
-                      final timeStr =
-                          _selectedTime!.hour.toString().padLeft(2, '0') +
-                          ':' +
-                          _selectedTime!.minute.toString().padLeft(2, '0');
+                      final lastAttendee = _attendeeController.text.trim();
+                      if (lastAttendee.isNotEmpty) {
+                        _attendees.add(lastAttendee);
+                      }
 
+                      final timeStr =
+                          '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
+                      print(timeStr);
                       final event = CalendarEvent(
                         date: _selectedDate!,
                         time: timeStr,
@@ -585,15 +650,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
 
                       // Go back first so your SessionsPage can insert & refresh
                       Navigator.pop(context, event);
-
-                      // Then schedule the one-time notification
-                      scheduleDailyNotification(_selectedDate!, timeStr);
                     }
-
-                    // Reset for next open
-                    _selectedDate = null;
-                    _selectedTime = null;
-                    _attendees = [];
                   },
                   child: const Text("Save Session"),
                 ),
