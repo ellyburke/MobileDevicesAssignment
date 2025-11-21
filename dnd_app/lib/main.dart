@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
-import 'package:dnd_app/compendium.dart';
+import 'package:dnd_app/screens/compendium/compendium.dart';
 
 void main() async {
   runApp(MyApp());
@@ -71,7 +71,6 @@ class _HomePageState extends State<HomePage> {
     // Building the homepage
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFFA23E2E),
         title: Text("D&D Companion App"),
         actions: [
           IconButton(onPressed: null, icon: Icon(Icons.account_circle)),

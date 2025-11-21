@@ -75,6 +75,10 @@ class CompendiumPageState extends State<CompendiumPage> {
                     return ListView.separated(
                       itemCount: snapshot.data!.count!,
                       itemBuilder: (context, index) {
+                        print(
+                          "----------------------------------------------------------------------",
+                        );
+                        print(snapshot);
                         return ListTile(
                           onTap: () async {
                             Navigator.push(
@@ -84,7 +88,10 @@ class CompendiumPageState extends State<CompendiumPage> {
                                   return ContentPage(
                                     endpoint:
                                         snapshot.data!.results![index]["index"],
-                                    category: widget.category,
+                                    category: widget.category.replaceAll(
+                                      RegExp(r'\s'),
+                                      '-',
+                                    ),
                                   );
                                 },
                               ), // Navigates to the FormPage when pressed
@@ -115,7 +122,15 @@ class CompendiumPageState extends State<CompendiumPage> {
                     );
                   }
                   // By default, show a loading spinner.
-                  return const CircularProgressIndicator();
+                  return const SizedBox(
+                    height: 200,
+                    width: 200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF1E1B18),
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
