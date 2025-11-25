@@ -8,8 +8,30 @@ class User {
   String username;
   String password;
   List<String> friends; //List of usernames or ids of friends, probably id.
+  String firstName;
+  String lastName;
+  DateTime birthday;
+  String? bio;
+  String? displayName;
+  String? pronouns;
+  String? profileImage;
+  String email;
 
-  User(this.id, this.username, this.password, this.friends);
+
+  User({
+    this.id,
+    required this.username,
+    required this.password,
+    this.friends = const [],
+    required this.firstName,
+    required this.lastName,
+    required this.birthday,
+    this.bio,
+    this.displayName,
+    this.pronouns,
+    this.profileImage,
+    required this.email
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -17,17 +39,37 @@ class User {
       'username': username,
       'password': password,
       'friends': jsonEncode(friends),
+      'firstName': firstName,
+      'lastName': lastName,
+      'birthday': birthday.toIso8601String(),
+      'bio': bio,
+      'displayName': displayName,
+      'pronouns': pronouns,
+      'profileImage': profileImage,
+      'email': email,
     };
   }
 
+
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      map['id'],
-      map['username'],
-      map['password'],
-      List<String>.from(jsonDecode(map['friends'])),
+      id: map['id'],
+      username: map['username'],
+      password: map['password'],
+      friends: map['friends'] != null
+          ? List<String>.from(jsonDecode(map['friends']))
+          : [],
+      firstName: map['firstName'],
+      lastName: map['lastName'],
+      birthday: DateTime.parse(map['birthday']),
+      bio: map['bio'],
+      displayName: map['displayName'],
+      pronouns: map['pronouns'],
+      profileImage: map['profileImage'],
+      email: map['email'],
     );
   }
+
 }
 
 class UserDatabase {
@@ -48,15 +90,31 @@ class UserDatabase {
     return await openDatabase(path, version: 1, onCreate: _createDatabase);
   }
 
+  // Deletes database - ONLY FOR TESTING
+  // Future<void> deleteOldDatabase() async {
+  //   final dbPath = await getDatabasesPath();
+  //   final path = join(dbPath, 'user.db');
+  //
+  //   await deleteDatabase(path);
+  // }
+
   Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL,
-        friends TEXT NOT NULL DEFAULT '[]'
-        );   
-        ''');
+    CREATE TABLE users(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      password TEXT NOT NULL,
+      email TEXT NOT NULL,
+      firstName TEXT NOT NULL,
+      lastName TEXT NOT NULL,
+      birthday TEXT NOT NULL,
+      bio TEXT,
+      displayName TEXT,
+      pronouns TEXT,
+      profileImage TEXT,
+      friends TEXT NOT NULL DEFAULT '[]'
+    );
+  ''');
   }
 
   Future<void> insertUser(User user) async {

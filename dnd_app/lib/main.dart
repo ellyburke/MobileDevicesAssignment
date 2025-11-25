@@ -6,7 +6,11 @@ import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/compendium.dart';
 
+import 'package:dnd_app/userDatabase.dart';
+
 void main() async {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await UserDatabase.instance.deleteOldDatabase(); // ONLY USED FOR TESTING
   runApp(MyApp());
 }
 
