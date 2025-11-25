@@ -19,6 +19,7 @@ class Character {
   String background;
   String alignment;
   String? appearance;
+  String? size;
 
   Map<String, int> charClass;
   Map<String, int> skills;
@@ -59,6 +60,7 @@ class Character {
     required this.classFeatures,
     required this.proficiencies,
     required this.languages,
+    required this.size,
     this.inventory,
     this.equipment,
     this.spells,
@@ -87,6 +89,7 @@ class Character {
       'initiative': initiative,
       'speed': speed,
       'passive_perception': passivePerception,
+      'size': size,
       'char_class': jsonEncode(charClass),
       'skills': jsonEncode(skills),
       'features': jsonEncode(features),
@@ -122,6 +125,7 @@ class Character {
       initiative: map['initiative'] ?? 0,
       speed: map['speed'] ?? 30,
       passivePerception: map['passive_perception'] ?? 10,
+      size: map['size'] ?? '',
       charClass: _decodeMap(map['char_class']),
       skills: _decodeMap(map['skills']),
       features: _decodeList(map['features']),

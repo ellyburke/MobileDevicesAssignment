@@ -13,33 +13,6 @@ final _formKey = GlobalKey<FormState>();
 
 // Controllers for each text field
 final _nameController = TextEditingController();
-final _levelController = TextEditingController();
-final _raceController = TextEditingController();
-final _hpController = TextEditingController();
-final _speedController = TextEditingController();
-final _initController = TextEditingController();
-final _wisdomController = TextEditingController();
-final _backgroundController = TextEditingController();
-final _alignmentController = TextEditingController();
-final _appearanceController = TextEditingController();
-final _strengthController = TextEditingController();
-final _dexterityController = TextEditingController();
-final _constitutionController = TextEditingController();
-final _intelligenceController = TextEditingController();
-final _charismaController = TextEditingController();
-final _armorClassController = TextEditingController();
-final _passivePerceptionController = TextEditingController();
-final _charClassController = TextEditingController();
-final _skillsController = TextEditingController();
-final _featuresController = TextEditingController();
-final _traitsController = TextEditingController();
-final _classFeaturesController = TextEditingController();
-final _equipmentController = TextEditingController();
-final _inventoryController = TextEditingController();
-final _proficienciesController = TextEditingController();
-final _spellController = TextEditingController();
-final _spellCastingAbilityController = TextEditingController();
-final _spellSlotsController = TextEditingController();
 
 int? hp = 0;
 int? strength = 0;
@@ -58,6 +31,7 @@ int? passivePerception = 0;
 String? background;
 String? alignment;
 String? appearance;
+String size = 'Small';
 
 Map<String, int>? charClass;
 String? selectedClass;
@@ -65,6 +39,7 @@ Map<String, int>? skills;
 Map<String, int>? inventory;
 Map<String, int>? spellCastingAbility;
 Map<String, int>? spellSlots;
+Map<String, dynamic>? abilityBonus;
 
 List<String>? features;
 List<String>? traits;
@@ -72,6 +47,7 @@ List<String>? classFeatures;
 List<String>? equipment;
 List<String>? proficiencies;
 List<String>? languages;
+List<String>? raceLanguages;
 List<String> selectedSpells = [];
 
 class NewCharacterForm extends StatefulWidget {
@@ -168,6 +144,46 @@ class _RaceSelectorState extends State<RaceSelector> {
     'Tiefling',
   ];
 
+  Future<void> getRaceInfo() async {
+    final response = await http.get(
+      Uri.parse(
+        'https://www.dnd5eapi.co/api/2014/races/${race?.toLowerCase()}',
+      ),
+    );
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      setState(() {
+        speed = decoded['speed'];
+        final bonusesList = decoded['ability_bonuses'] as List<dynamic>?;
+
+        if (bonusesList == null || bonusesList.isEmpty) {
+          // No bonuses for this race
+          abilityBonus = null;
+        } else {
+          abilityBonus = {
+            for (final b in bonusesList)
+              (b['ability_score']['name'] as String): b['bonus'] as int,
+          };
+        }
+        size = decoded['size'];
+
+        final raceLangList = decoded['languages'] as List<dynamic> ?? [];
+
+        raceLanguages = raceLangList
+            .map((t) => (t as Map<String, dynamic>)['name'] as String)
+            .toList();
+
+        final traitList = decoded['traits'] as List<dynamic>;
+
+        traits = traitList
+            .map((t) => (t as Map<String, dynamic>)['name'] as String)
+            .toList();
+      });
+    } else {
+      throw Exception('Failed to load Race Info');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,8 +217,170 @@ class _RaceSelectorState extends State<RaceSelector> {
               }).toList(),
               onChanged: (value) {
                 race = value!;
+                setState(() {
+                  getRaceInfo();
+                });
               },
             ),
+            SizedBox(height: 16.0),
+            if (race == 'Dragonborn')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Dragonborn.jpg',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.cover, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: https://mythopedia.com/name-generator/dnd-dragonborn-names",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Dwarf')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Dwarf.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: https://www.dndbeyond.com/species/13-dwarf",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Elf')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Elf.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: https://astral-reach.fandom.com/wiki/Elves",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Gnome')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Gnome.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: https://criticalrole.miraheze.org/wiki/Gnome",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Half-Elf')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Half-Elf.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: www.dndbeyond.com/species/20-half-elf",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Half-Orc')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Half-Orc.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: www.dndbeyond.com/species/2-half-orc",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Halfling')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Halfling.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: www.dndbeyond.com/species/14-halfling",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Human')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Human.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: www.dndbeyond.com/species/1-human",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            if (race == 'Tiefling')
+              Column(
+                children: [
+                  Image.asset(
+                    'assets/images/Tiefling.png',
+                    width: 250,
+                    height: 250, //500
+                    fit: BoxFit.contain, // Try cover, contain, fill
+                  ),
+                  Text(
+                    "Source: www.dndbeyond.com/species/7-tiefling",
+                    style: TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+
+            Text('Speed: ${speed.toString()}'),
+            Text('Size: ${size}'),
+            if (abilityBonus != null)
+              for (final entry in abilityBonus!.entries)
+                Text('${entry.key} +${entry.value}'),
+            Text(
+              "Languages Known as $race",
+              style: TextStyle(color: Color(0xFFA23E2E)),
+            ),
+            if (raceLanguages != null && raceLanguages!.isNotEmpty)
+              for (var j in raceLanguages!) Text(j),
+            Text("$race traits", style: TextStyle(color: Color(0xFFA23E2E))),
+            if (traits != null && traits!.isNotEmpty)
+              for (var i in traits!) Text(i),
             Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
