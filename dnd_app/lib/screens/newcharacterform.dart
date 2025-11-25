@@ -5,14 +5,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dnd_app/character_databases.dart';
 import 'package:dnd_app/backEnd.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:dnd_app/screens/compendium/content.dart';
+import 'characters.dart';
 
 final _formKey = GlobalKey<FormState>();
 
 // Controllers for each text field
 final _nameController = TextEditingController();
+final _strengthController = TextEditingController();
+final _dexterityController = TextEditingController();
+final _constitutionController = TextEditingController();
+final _intelligenceController = TextEditingController();
+final _wisdomController = TextEditingController();
+final _charismaController = TextEditingController();
+final _armorClassController = TextEditingController();
+final _appearanceController = TextEditingController();
 
 int? hp = 0;
 int? strength = 0;
@@ -20,14 +29,14 @@ int? dexterity = 0;
 int? intelligence = 0;
 int? constitution = 0;
 int? wisdom = 0;
-int? charisma;
+int? charisma = 0;
 String? name;
 String? race;
 int? level = 1;
 int? armorClass = 0;
 int? initiative = 0;
 int? speed = 0;
-int? passivePerception = 0;
+int? passivePerception = 10;
 String? background;
 String? alignment;
 String? appearance;
@@ -35,18 +44,50 @@ String size = 'Small';
 
 Map<String, int>? charClass;
 String? selectedClass;
-Map<String, int>? skills;
-Map<String, int>? inventory;
-Map<String, int>? spellCastingAbility;
-Map<String, int>? spellSlots;
+Map<String, bool> skillBonuses = {
+  'Athletics': false,
+  'Acrobatics': false,
+  'Sleight of Hand': false,
+  'Stealth': false,
+  'Arcana': false,
+  'History': false,
+  'Investigation': false,
+  'Nature': false,
+  'Religion': false,
+  'Animal Handling': false,
+  'Insight': false,
+  'Medicine': false,
+  'Perception': false,
+  'Survival': false,
+  'Deception': false,
+  'Intimidation': false,
+  'Performance': false,
+  'Persuasion': false,
+};
+Map<String, int> inventory = {'Gold': 100};
+Map<String, int> spellCastingAbility = {
+  'Spell Casting Modifier': 0,
+  'Spell Save DC:': 0,
+  'Spell Attack Bonus': 0,
+};
+Map<String, int> spellSlots = {
+  'Level 1': 0,
+  'Level 2': 0,
+  'Level 3': 0,
+  'Level 4': 0,
+  'Level 5': 0,
+  'Level 6': 0,
+  'Level 7': 0,
+  'Level 8': 0,
+  'Level 9': 0,
+};
 Map<String, dynamic>? abilityBonus;
 
-List<String>? features;
+List<String> features = [];
 List<String>? traits;
-List<String>? classFeatures;
 List<String>? equipment;
-List<String>? proficiencies;
-List<String>? languages;
+int proficiencies = 2;
+List<String> languages = [];
 List<String>? raceLanguages;
 List<String> selectedSpells = [];
 
@@ -107,6 +148,7 @@ class _NewCharacterFormState extends State<NewCharacterForm> {
                   if (_formKey.currentState!.validate()) {
                     //setState(() async {
                     // STEP 2: return character object
+                    name = _nameController.text;
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => RaceSelector()),
@@ -167,7 +209,7 @@ class _RaceSelectorState extends State<RaceSelector> {
         }
         size = decoded['size'];
 
-        final raceLangList = decoded['languages'] as List<dynamic> ?? [];
+        final raceLangList = decoded['languages'] as List<dynamic>;
 
         raceLanguages = raceLangList
             .map((t) => (t as Map<String, dynamic>)['name'] as String)
@@ -366,19 +408,41 @@ class _RaceSelectorState extends State<RaceSelector> {
                   ),
                 ],
               ),
-
+            SizedBox(height: 16.0),
             Text('Speed: ${speed.toString()}'),
             Text('Size: ${size}'),
+            SizedBox(height: 16.0),
+            Text(
+              '$race Ability Bonuses',
+              style: TextStyle(
+                color: Color(0xFFA23E2E),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             if (abilityBonus != null)
               for (final entry in abilityBonus!.entries)
                 Text('${entry.key} +${entry.value}'),
+            SizedBox(height: 16.0),
             Text(
               "Languages Known as $race",
-              style: TextStyle(color: Color(0xFFA23E2E)),
+              style: TextStyle(
+                color: Color(0xFFA23E2E),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             if (raceLanguages != null && raceLanguages!.isNotEmpty)
               for (var j in raceLanguages!) Text(j),
-            Text("$race traits", style: TextStyle(color: Color(0xFFA23E2E))),
+            SizedBox(height: 16.0),
+            Text(
+              "$race traits",
+              style: TextStyle(
+                color: Color(0xFFA23E2E),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             if (traits != null && traits!.isNotEmpty)
               for (var i in traits!) Text(i),
             Spacer(),
@@ -474,6 +538,7 @@ class SelectClassState extends State<SelectClass> {
         skillCount = count;
         skillDesc = firstChoice['desc'] as String;
         selectedSkills = List<String?>.filled(count, null);
+        hp = decoded['hit_die'];
       });
     } else {
       debugPrint(
@@ -584,7 +649,9 @@ class SelectClassState extends State<SelectClass> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ElevatedButton(
                 onPressed: () {
-                  proficiencies = skills;
+                  skillBonuses.updateAll(
+                    (key, value) => selectedSkills.contains(key),
+                  );
                   if (selectedClass == 'Bard' ||
                       selectedClass == 'Druid' ||
                       selectedClass == 'Cleric' ||
@@ -596,7 +663,10 @@ class SelectClassState extends State<SelectClass> {
                       MaterialPageRoute(builder: (context) => pickSpells()),
                     );
                   } else {
-                    //Choose Background
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => statsPage()),
+                    );
                   }
                 },
                 child: Text("Confirm"),
@@ -1004,7 +1074,7 @@ class pickSpellsState extends State<pickSpells> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("Loading, This may take a while"),
+                  Text("Loading, This may take a while..."),
                   SizedBox(height: 8.0),
                   CircularProgressIndicator(),
                 ],
@@ -1020,16 +1090,28 @@ class pickSpellsState extends State<pickSpells> {
                   const SizedBox(height: 12),
                   Text(
                     'Class: $selectedClass',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: TextStyle(
+                      color: Color(0xFFA23E2E),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Cantrips: choose $_cantripLimit '
                     '(selected: $cantripSelected)',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontSize: 18,
+                    ),
                   ),
                   Text(
                     'Level 1 spells: choose $_level1Limit '
                     '(selected: $level1Selected)',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontSize: 18,
+                    ),
                   ),
                   if (selectedClass?.toLowerCase() == 'cleric')
                     const Padding(
@@ -1072,7 +1154,7 @@ class pickSpellsState extends State<pickSpells> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const backgroundPage(),
+                              builder: (context) => const statsPage(),
                             ),
                           );
                         },
@@ -1087,6 +1169,319 @@ class pickSpellsState extends State<pickSpells> {
   }
 }
 
+class statsPage extends StatefulWidget {
+  const statsPage({super.key});
+  @override
+  statsPageState createState() => statsPageState();
+}
+
+class statsPageState extends State<statsPage> {
+  int strbonus = abilityBonus?["STR"] ?? 0;
+  int dexbonus = abilityBonus?["DEX"] ?? 0;
+  int conbonus = abilityBonus?["CON"] ?? 0;
+  int intbonus = abilityBonus?["INT"] ?? 0;
+  int wisbonus = abilityBonus?["WIS"] ?? 0;
+  int chabonus = abilityBonus?["CHA"] ?? 0;
+  int strTotal = 0;
+  int dexTotal = 0;
+  int conTotal = 0;
+  int intTotal = 0;
+  int wisTotal = 0;
+  int chaTotal = 0;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Character Stats")),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text("Now it is time for you to roll for your stats"),
+              SizedBox(height: 8.0),
+              Text(
+                "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
+              ),
+              SizedBox(height: 16.0),
+              Text("Strength"),
+              SizedBox(height: 8.0),
+              Text(
+                "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
+              ),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _strengthController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          strTotal =
+                              (strbonus + int.parse(_strengthController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $strbonus = $strTotal'),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text("Dexterity"),
+              SizedBox(height: 8.0),
+              Text("Dexterity measures agility, reflexes, and balance."),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _dexterityController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          dexTotal =
+                              (dexbonus + int.parse(_dexterityController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $dexbonus = $dexTotal'),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text("Constitution"),
+              SizedBox(height: 8.0),
+              Text("Constitiution measures health, stamina, and vital force."),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _constitutionController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          conTotal =
+                              (conbonus +
+                              int.parse(_constitutionController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $conbonus = $conTotal'),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text("Intelligence"),
+              SizedBox(height: 8.0),
+              Text(
+                "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
+              ),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _intelligenceController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          intTotal =
+                              (intbonus +
+                              int.parse(_intelligenceController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $intbonus = $intTotal'),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text("Wisdom"),
+              SizedBox(height: 8.0),
+              Text(
+                "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
+              ),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _wisdomController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          wisTotal =
+                              (wisbonus + int.parse(_wisdomController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $wisbonus = $wisTotal'),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Text("Charisma"),
+              SizedBox(height: 8.0),
+              Text(
+                "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
+              ),
+              SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    child: TextField(
+                      textAlign: TextAlign.start,
+                      controller: _charismaController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        hintText: 'base',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          chaTotal =
+                              (chabonus + int.parse(_charismaController.text));
+                        });
+                      },
+                    ),
+                  ),
+                  Text(' +  $chabonus = $chaTotal'),
+                ],
+              ),
+              SizedBox(height: 50.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    strength = strTotal;
+                    dexterity = dexTotal;
+                    constitution = conTotal;
+                    intelligence = intTotal;
+                    wisdom = wisTotal;
+                    charisma = chaTotal;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const backgroundPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('Confirm Stats'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class backgroundPage extends StatefulWidget {
   const backgroundPage({super.key});
 
@@ -1095,11 +1490,275 @@ class backgroundPage extends StatefulWidget {
 }
 
 class backgroundState extends State<backgroundPage> {
+  void addCharacter(Character character) async {
+    final newCharacter = Character(
+      hp: hp,
+      strength: strength,
+      dexterity: dexterity,
+      intelligence: intelligence,
+      constitution: constitution,
+      wisdom: wisdom,
+      charisma: charisma,
+      name: name,
+      race: race,
+      level: level,
+      armorClass: armorClass,
+      initiative: initiative,
+      speed: speed,
+      passivePerception: passivePerception,
+      background: "acolyte",
+      alignment: alignment,
+      charClass: charClass,
+      skillBonuses: skillBonuses,
+      features: features,
+      traits: traits,
+      proficiencies: proficiencies,
+      languages: languages,
+      size: size,
+      inventory: inventory,
+      equipment: equipment,
+      spells: selectedSpells,
+      spellCastingAbility: spellCastingAbility,
+      spellSlots: spellSlots,
+      appearance: appearance,
+    );
+    await CharacterDatabase.instance.create(newCharacter);
+  }
+
+  final List<String?> selectedExtra = List<String?>.filled(2, null);
+  List<String> extralanguages = [
+    'Abyssal',
+    'Celestial',
+    'Common Sign Language',
+    'Deep Speech',
+    'Dwarvish',
+    'Elvish',
+    'Giant',
+    'Gnomish',
+    'Goblin',
+    'Halfling',
+    'Infernal',
+    'Orc',
+    'Primordial',
+    'Sylvan',
+    'Undercommon',
+  ];
+  List<String> alignOptions = [
+    'Lawful Good',
+    'Neutral Good',
+    'Chaotic Good',
+    'Lawful Neutral',
+    'True Neutral',
+    'Chaotic Neutral',
+    'Lawful Evil',
+    'Neutral Evil',
+    'Chaotic Evil',
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Character Info")),
-      body: Column(),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text("Now lets get the rest of your Characters information"),
+            SizedBox(height: 16.0),
+            Text("Choose 2 Languages to learn."),
+            SizedBox(height: 8.0),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 2,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: selectedExtra[index],
+                    decoration: InputDecoration(
+                      labelText: 'Language ${index + 1}',
+                      border: const OutlineInputBorder(),
+                    ),
+                    isExpanded: true,
+                    items: extralanguages
+                        .map(
+                          (skill) => DropdownMenuItem<String>(
+                            value: skill,
+                            child: Text(skill),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedExtra[index] = value!;
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 16.0),
+            Text("Choose your characters alignment"),
+            DropdownButtonFormField<String>(
+              initialValue: alignment,
+              decoration: InputDecoration(
+                hintText: "Select an alignment",
+                hintStyle: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
+              ),
+              isExpanded: true,
+              items: alignOptions.map((text) {
+                return DropdownMenuItem<String>(
+                  value: text,
+                  child: Center(child: Text(text)),
+                );
+              }).toList(),
+              onChanged: (value) async {
+                if (value == null) return;
+                alignment = value;
+              },
+            ),
+            SizedBox(height: 16.0),
+            Text("Enter your Characters Armor Class"),
+            TextFormField(
+              textAlign: TextAlign.center,
+              controller: _armorClassController,
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              decoration: InputDecoration(
+                hintText: 'AC',
+                hintStyle: TextStyle(
+                  color: Colors.black.withValues(alpha: 0.4),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  armorClass = int.parse(_armorClassController.text);
+                });
+              },
+            ),
+            SizedBox(height: 16.0),
+            Text("Describe your characters appearance (optional)"),
+            SizedBox(height: 8.0),
+            TextFormField(
+              textAlign: TextAlign.start,
+              controller: _appearanceController,
+              decoration: InputDecoration(
+                hintText: 'How do they look',
+                hintStyle: TextStyle(
+                  color: Colors.black.withValues(alpha: 0.4),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  appearance = _appearanceController.text;
+                });
+              },
+            ),
+            Spacer(),
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    for (var i in selectedExtra) {
+                      languages.add(i!);
+                    }
+                    if (skillBonuses['perception'] == true) {
+                      passivePerception =
+                          ((((wisdom! - 10) ~/ 2) as int?)! + proficiencies);
+                    } else {
+                      passivePerception = (((wisdom! - 10) ~/ 2) as int?);
+                    }
+                    if (selectedClass == 'Wizard') {
+                      spellCastingAbility['Spell Casting Modifier'] =
+                          (((intelligence! - 10) ~/ 2));
+                    } else if (selectedClass == 'Cleric' ||
+                        selectedClass == 'Druid' ||
+                        selectedClass == 'Ranger') {
+                      spellCastingAbility['Spell Casting Modifier'] =
+                          ((wisdom! - 10) ~/ 2);
+                    } else if (selectedClass == 'Warlock' ||
+                        selectedClass == 'Paladin' ||
+                        selectedClass == 'Sorcerer' ||
+                        selectedClass == 'Bard') {
+                      spellCastingAbility['Spell Casting Modifier'] =
+                          ((charisma! - 10) ~/ 2);
+                    }
+                    spellCastingAbility['Spell Save DC'] =
+                        8 +
+                        proficiencies +
+                        spellCastingAbility['Spell Casting Modifier']!;
+                    spellCastingAbility['Spell Attack Bonus'] =
+                        proficiencies +
+                        spellCastingAbility['Spell Casting Modifier']!;
+                    initiative = (((dexterity! - 10) ~/ 2) as int?);
+                    Character character = Character(
+                      hp: hp,
+                      strength: strength,
+                      dexterity: dexterity,
+                      intelligence: intelligence,
+                      constitution: constitution,
+                      wisdom: wisdom,
+                      charisma: charisma,
+                      name: name,
+                      race: race,
+                      level: level,
+                      armorClass: armorClass,
+                      initiative: initiative,
+                      speed: speed,
+                      passivePerception: passivePerception,
+                      background: "acolyte",
+                      alignment: alignment,
+                      charClass: charClass,
+                      skillBonuses: skillBonuses,
+                      features: features,
+                      traits: traits,
+                      proficiencies: proficiencies,
+                      languages: languages,
+                      size: size,
+                      inventory: inventory,
+                      equipment: equipment,
+                      spells: selectedSpells,
+                      spellCastingAbility: spellCastingAbility,
+                      spellSlots: spellSlots,
+                      appearance: appearance,
+                    );
+                    addCharacter(character);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CharacterPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('Create Character'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

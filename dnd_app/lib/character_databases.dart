@@ -18,11 +18,7 @@ class CharacterDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -46,14 +42,14 @@ class CharacterDatabase {
       initiative INTEGER,
       speed INTEGER,
       passive_perception INTEGER,
+      size TEXT,
       char_class TEXT,
       skills TEXT,
       features TEXT,
       traits TEXT,
-      class_features TEXT,
       equipment TEXT,
       inventory TEXT,
-      proficiencies TEXT,
+      proficiencies INT,
       languages TEXT,
       spells TEXT,
       spell_casting_ability TEXT,

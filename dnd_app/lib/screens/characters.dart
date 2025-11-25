@@ -79,7 +79,7 @@ class _CharacterPageState extends State<CharacterPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  color: Color(0xFFA23E2E).withOpacity(0.5),
+                  color: Color(0xFFA23E2E)..withValues(alpha: 0.5),
                 ),
                 // Where we will define each tab
                 child: const TabBar(
@@ -151,7 +151,7 @@ class _CharacterPageState extends State<CharacterPage> {
                             Row(
                               children: [
                                 Text(
-                                  character.name,
+                                  character.name as String,
                                   style: TextStyle(fontSize: 25),
                                 ),
                               ],

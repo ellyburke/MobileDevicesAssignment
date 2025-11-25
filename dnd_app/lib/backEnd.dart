@@ -2,38 +2,37 @@ import 'dart:convert';
 
 class Character {
   int? id;
-  int hp;
-  int strength;
-  int dexterity;
-  int intelligence;
-  int constitution;
-  int wisdom;
-  int charisma;
-  String name;
-  String race;
-  int level;
-  int armorClass;
-  int initiative;
-  int speed;
-  int passivePerception;
-  String background;
-  String alignment;
+  int? hp;
+  int? strength;
+  int? dexterity;
+  int? intelligence;
+  int? constitution;
+  int? wisdom;
+  int? charisma;
+  String? name;
+  String? race;
+  int? level;
+  int? armorClass;
+  int? initiative;
+  int? speed;
+  int? passivePerception;
+  String? background;
+  String? alignment;
   String? appearance;
-  String? size;
+  String size;
 
-  Map<String, int> charClass;
-  Map<String, int> skills;
-  Map<String, int>? inventory;
-  Map<String, int>? spellCastingAbility;
-  Map<String, int>? spellSlots;
+  Map<String, int>? charClass;
+  Map<String, bool> skillBonuses;
+  Map<String, int> inventory;
+  Map<String, int> spellCastingAbility;
+  Map<String, int> spellSlots;
 
   List<String> features;
-  List<String> traits;
-  List<String> classFeatures;
+  List<String>? traits;
   List<String>? equipment;
-  List<String> proficiencies;
+  int proficiencies;
   List<String> languages;
-  List<String>? spells;
+  List<String> spells;
 
   Character({
     this.id,
@@ -54,18 +53,17 @@ class Character {
     required this.background,
     required this.alignment,
     required this.charClass,
-    required this.skills,
+    required this.skillBonuses,
     required this.features,
     required this.traits,
-    required this.classFeatures,
     required this.proficiencies,
     required this.languages,
     required this.size,
-    this.inventory,
+    required this.inventory,
     this.equipment,
-    this.spells,
-    this.spellCastingAbility,
-    this.spellSlots,
+    required this.spells,
+    required this.spellCastingAbility,
+    required this.spellSlots,
     this.appearance,
   });
 
@@ -91,13 +89,12 @@ class Character {
       'passive_perception': passivePerception,
       'size': size,
       'char_class': jsonEncode(charClass),
-      'skills': jsonEncode(skills),
+      'skills': jsonEncode(skillBonuses),
       'features': jsonEncode(features),
       'traits': jsonEncode(traits),
-      'class_features': jsonEncode(classFeatures),
       'equipment': jsonEncode(equipment),
       'inventory': jsonEncode(inventory),
-      'proficiencies': jsonEncode(proficiencies),
+      'proficiencies': proficiencies,
       'languages': jsonEncode(languages),
       'spells': jsonEncode(spells),
       'spell_casting_ability': jsonEncode(spellCastingAbility),
@@ -127,29 +124,25 @@ class Character {
       passivePerception: map['passive_perception'] ?? 10,
       size: map['size'] ?? '',
       charClass: _decodeMap(map['char_class']),
-      skills: _decodeMap(map['skills']),
+      skillBonuses: _decodeBoolMap(map['skillBonuses']),
       features: _decodeList(map['features']),
       traits: _decodeList(map['traits']),
-      classFeatures: _decodeList(map['class_features']),
-      proficiencies: _decodeList(map['proficiencies']),
+      proficiencies: map['proficiencies'] ?? 0,
       languages: _decodeList(map['languages']),
-      inventory: _decodeMapNullable(map['inventory']),
-      equipment: _decodeListNullable(map['equipment']),
-      spells: _decodeListNullable(map['spells']),
-      spellCastingAbility: _decodeMapNullable(map['spell_casting_ability']),
-      spellSlots: _decodeMapNullable(map['spell_slots']),
+      inventory: _decodeMap(map['inventory']),
+      equipment: _decodeList(map['equipment']),
+      spells: _decodeList(map['spells']),
+      spellCastingAbility: _decodeMap(map['spell_casting_ability']),
+      spellSlots: _decodeMap(map['spell_slots']),
     );
   }
 
   static Map<String, int> _decodeMap(dynamic data) =>
       Map<String, int>.from(jsonDecode(data ?? '{}'));
 
-  static Map<String, int>? _decodeMapNullable(dynamic data) =>
-      data == null ? null : Map<String, int>.from(jsonDecode(data));
+  static Map<String, bool> _decodeBoolMap(dynamic data) =>
+      Map<String, bool>.from(jsonDecode(data ?? '{}'));
 
   static List<String> _decodeList(dynamic data) =>
       List<String>.from(jsonDecode(data ?? '[]'));
-
-  static List<String>? _decodeListNullable(dynamic data) =>
-      data == null ? null : List<String>.from(jsonDecode(data));
 }
