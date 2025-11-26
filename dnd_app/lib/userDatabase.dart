@@ -7,7 +7,7 @@ class User {
   int? id;
   String username;
   String password;
-  List<String> friends; //List of usernames or ids of friends, probably id.
+  List<int> friends; //List of usernames or ids of friends, probably id.
   String firstName;
   String lastName;
   DateTime birthday;
@@ -57,7 +57,7 @@ class User {
       username: map['username'],
       password: map['password'],
       friends: map['friends'] != null
-          ? List<String>.from(jsonDecode(map['friends']))
+          ? List<int>.from(jsonDecode(map['friends']))
           : [],
       firstName: map['firstName'],
       lastName: map['lastName'],
@@ -158,22 +158,41 @@ class UserDatabase {
     );
   }
 
-  Future<int> addFriend(int id, String friend) async {
+  Future<int> addFriend(int id, int friendId) async {
     final user = await getUserById(id);
     if (user == null) {
       throw Exception('User not found');
     }
-    user.friends.add(friend);
+    user.friends.add(friendId);
     return await updateUser(user);
   }
 
-  Future<int> removeFriend(int id, String friend) async {
+  Future<int> removeFriend(int id, int friend_id) async {
     final user = await getUserById(id);
     if (user == null) {
       throw Exception('User not found');
     }
-    user.friends.remove(friend);
+    user.friends.remove(friend_id);
     return await updateUser(user);
+  }
+
+  Future<List<User>> getFriends(int id) async {
+    final user = await getUserById(id);
+
+    if (user == null) {
+      throw Exception('User not found');
+    }
+
+    List<User> friendsList = [];
+    if (user.friends.isNotEmpty){
+      for (int friendId in user.friends){
+        final friend = await getUserById(friendId);
+        if (friend != null) {
+          friendsList.add(friend);
+        }
+      }
+    }
+    return friendsList;
   }
 
   //IDK I added this just in case

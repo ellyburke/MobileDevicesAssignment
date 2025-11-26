@@ -2,6 +2,8 @@ import 'package:dnd_app/userDatabase.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
+import 'package:fluttericon/elusive_icons.dart';
+
 class FriendsPage extends StatefulWidget{
   const FriendsPage({super.key});
   
@@ -10,9 +12,11 @@ class FriendsPage extends StatefulWidget{
 }
 
 class _FriendsPageState extends State<FriendsPage>{
+  //Store the current logged in user id
+  final int userId = 11;
 
   // Get the list of friends in the database
-  late Future<List<User>> userData = UserDatabase.instance.getAllUser();
+  late Future<List<User>> friendsData;
 
   // Store a bool to by pass filtered list initialization
   bool _initialized = false;
@@ -27,6 +31,16 @@ class _FriendsPageState extends State<FriendsPage>{
 
   // Text controller for search bar
   TextEditingController searchController = TextEditingController();
+
+  Future<void> refreshData() async {
+    final refreshedData = await UserDatabase.instance.getAllUser();
+
+    setState(() {
+      friendsList = refreshedData;
+      filteredMap = mapData(friendsList);
+      filteredList = buildFlattenedList(filteredMap);
+    });
+  }
 
   Map<String, List<User>> mapData(List<dynamic> friends, {String text = ''}){
     // Function to map the list into alphabet sections to display on page
@@ -81,45 +95,25 @@ class _FriendsPageState extends State<FriendsPage>{
   }
 
   // Add a user for testing
-  void addFriend(){
-    final newUser = User(
-      username: "king123",
-      password: "supersecure123",
-      friends: ["1", "4", "7"],
-      firstName: "Charles",
-      lastName: "Lee",
-      birthday: DateTime(2003, 5, 22),
-      bio: "Building cool stuff and breaking things along the way.",
-      displayName: "KingCharles",
-      pronouns: "he/him",
-      profileImage: "https://example.com/marcus.jpg",
-      email: "marcus@example.com",
-    );
-    UserDatabase.instance.insertUser(newUser);
-    final refreshedList = UserDatabase.instance.getAllUser();
-    setState(() {
-      userData = refreshedList;
-    });
+  void addFriend(int friendId){
+    UserDatabase.instance.addFriend(userId, friendId);
+    refreshData();
   }
 
   void removeFriend(int id){
     UserDatabase.instance.deleteUser(id);
-    final refreshedList = UserDatabase.instance.getAllUser();
-
-    setState(() {
-      userData = refreshedList;
-    });
+    refreshData();
   }
 
   @override
   void initState() {
-    userData = UserDatabase.instance.getAllUser();
+    friendsData = UserDatabase.instance.getFriends(userId);
   }
   @override
   Widget build(BuildContext context) {
     // Wrap the entire Scaffold in a Future builder
     return FutureBuilder(
-      future: userData,
+      future: friendsData,
       builder: (context, snapshot) {
 
         // While loading
@@ -153,9 +147,30 @@ class _FriendsPageState extends State<FriendsPage>{
             title: Text("Friends"),
             actions: [
               ElevatedButton(
-                onPressed: () {
-                  addFriend();
+                onPressed: () async {
+                  final result = await showAddFriendDialog(context);
+
+                  if (result != null){
+                    final int newId = result['id'];
+                    if (!friendsList.contains(newId)){
+                      addFriend(newId);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("New friend added successfully!"),
+                        ),
+                      );
+                    }
+                    else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("This person is already your friend"),
+                        ),
+                      );
+                    }
+                  }
+
                 },
+
                 child: Row(
                   children: const [
                     Icon(Icons.add),
@@ -278,8 +293,66 @@ class _FriendsPageState extends State<FriendsPage>{
         );
       },
     );
-
-
-
   }
+
+  // ==============================
+  // Add friend dialog
+  // ==============================
+  Future<Map<String, dynamic>?> showAddFriendDialog(BuildContext context) async {
+    final usernameController = TextEditingController();
+    String? errorText;
+
+    return showDialog<Map<String, dynamic>?>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Add a Friend by Username"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: usernameController,
+                    decoration: InputDecoration(
+                      labelText: "Username",
+                      prefixIcon: const Icon(Icons.person),
+                      errorText: errorText,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    final user = await UserDatabase.instance
+                        .getUserByUsername(usernameController.text.trim());
+
+                    if (user == null) {
+                      setState(() {
+                        errorText = "User not found";
+                      });
+                    } else {
+                      Navigator.pop(context, {
+                        "username": usernameController.text.trim(),
+                        "id": user.id,
+                      });
+                    }
+                  },
+                  child: const Text("Add"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
 }
