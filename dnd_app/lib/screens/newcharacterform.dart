@@ -412,72 +412,78 @@ class _RaceSelectorState extends State<RaceSelector> {
                   ],
                 ),
 
-            if (race == 'Tiefling')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Tiefling.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/7-tiefling",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
+              if (race == 'Tiefling')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Tiefling.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/7-tiefling",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+              SizedBox(height: 16.0),
+              Text(speedInfo),
+              Text(sizeInfo),
+              SizedBox(height: 16.0),
+              Text(
+                abilityBonusText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            SizedBox(height: 16.0),
-            Text('Speed: ${speed.toString()}'),
-            Text('Size: ${size}'),
-            SizedBox(height: 16.0),
-            Text(
-              '$race Ability Bonuses',
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              if (abilityBonus != null)
+                for (final entry in abilityBonus!.entries)
+                  Text('${entry.key} +${entry.value}'),
+              SizedBox(height: 16.0),
+              Text(
+                languageText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            if (abilityBonus != null)
-              for (final entry in abilityBonus!.entries)
-                Text('${entry.key} +${entry.value}'),
-            SizedBox(height: 16.0),
-            Text(
-              "Languages Known as $race",
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              if (raceLanguages != null && raceLanguages!.isNotEmpty)
+                for (var j in raceLanguages!) Text(j),
+              SizedBox(height: 16.0),
+              Text(
+                traitText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            if (raceLanguages != null && raceLanguages!.isNotEmpty)
-              for (var j in raceLanguages!) Text(j),
-            SizedBox(height: 16.0),
-            Text(
-              "$race traits",
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              if (traits != null && traits!.isNotEmpty)
+                for (var i in traits!) Text(i),
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SelectClass()),
+                    );
+                    if (result != null) {
+                      if (context.mounted) {
+                        Navigator.pop(context, result);
+                      }
+                    }
+                  },
+                  child: Text("Confirm"),
+                ),
               ),
-            ),
-            if (traits != null && traits!.isNotEmpty)
-              for (var i in traits!) Text(i),
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SelectClass()),
-                  );
-                },
-                child: Text("Confirm"),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1229,17 +1235,22 @@ class pickSpellsState extends State<pickSpells> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
-                          ..._cantripSpells.map(_buildSpellRow),
+                          ..._cantripSpells.map(_buildSpellRow).toList(),
                           const SizedBox(height: 16),
                         ],
-                        if (_level1Spells.isNotEmpty) ...[
-                          Text(
-                            'Level 1 Spells',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          ..._level1Spells.map(_buildSpellRow).toList(),
-                          const SizedBox(height: 16),
+                        for (var lvl = 1; lvl <= 9; lvl++) ...[
+                          if (_leveledSpells[lvl] != null &&
+                              _leveledSpells[lvl]!.isNotEmpty) ...[
+                            Text(
+                              'Level $lvl Spells',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            ..._leveledSpells[lvl]!
+                                .map(_buildSpellRow)
+                                .toList(),
+                            const SizedBox(height: 16),
+                          ],
                         ],
                       ],
                     ),
@@ -1319,289 +1330,316 @@ class statsPageState extends State<statsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Character Stats")),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text("Now it is time for you to roll for your stats"),
-              SizedBox(height: 8.0),
-              Text(
-                "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
-              ),
-              SizedBox(height: 16.0),
-              Text("Strength"),
-              SizedBox(height: 8.0),
-              Text(
-                "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _strengthController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          strTotal =
-                              (strbonus + int.parse(_strengthController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $strbonus = $strTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Dexterity"),
-              SizedBox(height: 8.0),
-              Text("Dexterity measures agility, reflexes, and balance."),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _dexterityController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          dexTotal =
-                              (dexbonus + int.parse(_dexterityController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $dexbonus = $dexTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Constitution"),
-              SizedBox(height: 8.0),
-              Text("Constitiution measures health, stamina, and vital force."),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _constitutionController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          conTotal =
-                              (conbonus +
-                              int.parse(_constitutionController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $conbonus = $conTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Intelligence"),
-              SizedBox(height: 8.0),
-              Text(
-                "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _intelligenceController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          intTotal =
-                              (intbonus +
-                              int.parse(_intelligenceController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $intbonus = $intTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Wisdom"),
-              SizedBox(height: 8.0),
-              Text(
-                "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _wisdomController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          wisTotal =
-                              (wisbonus + int.parse(_wisdomController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $wisbonus = $wisTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Charisma"),
-              SizedBox(height: 8.0),
-              Text(
-                "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _charismaController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          chaTotal =
-                              (chabonus + int.parse(_charismaController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $chabonus = $chaTotal'),
-                ],
-              ),
-              SizedBox(height: 50.0),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    strength = strTotal;
-                    dexterity = dexTotal;
-                    constitution = conTotal;
-                    intelligence = intTotal;
-                    wisdom = wisTotal;
-                    charisma = chaTotal;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const backgroundPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('Confirm Stats'),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text("Now it is time for you to roll for your stats"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
                 ),
-              ),
-            ],
+                SizedBox(height: 16.0),
+                Text("Strength"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _strengthController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            strTotal =
+                                (strbonus +
+                                int.parse(_strengthController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $strbonus = $strTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Dexterity"),
+                SizedBox(height: 8.0),
+                Text("Dexterity measures agility, reflexes, and balance."),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _dexterityController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            dexTotal =
+                                (dexbonus +
+                                int.parse(_dexterityController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $dexbonus = $dexTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Constitution"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Constitiution measures health, stamina, and vital force.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _constitutionController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            conTotal =
+                                (conbonus +
+                                int.parse(_constitutionController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $conbonus = $conTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Intelligence"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _intelligenceController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            intTotal =
+                                (intbonus +
+                                int.parse(_intelligenceController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $intbonus = $intTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Wisdom"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _wisdomController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            wisTotal =
+                                (wisbonus + int.parse(_wisdomController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $wisbonus = $wisTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Charisma"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _charismaController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            chaTotal =
+                                (chabonus +
+                                int.parse(_charismaController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $chabonus = $chaTotal'),
+                  ],
+                ),
+                SizedBox(height: 50.0),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      strength = strTotal;
+                      dexterity = dexTotal;
+                      constitution = conTotal;
+                      intelligence = intTotal;
+                      wisdom = wisTotal;
+                      charisma = chaTotal;
+
+                      if (_classHasSpellsAtThisLevel()) {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const pickSpells(),
+                          ),
+                        );
+                        if (result != null) {
+                          if (context.mounted) {
+                            Navigator.pop(context, result);
+                          }
+                        }
+                      } else {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const backgroundPage(),
+                          ),
+                        );
+                        if (result != null) {
+                          if (context.mounted) {
+                            Navigator.pop(context, result);
+                          }
+                        }
+                      }
+                    },
+                    child: const Text('Confirm Stats'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

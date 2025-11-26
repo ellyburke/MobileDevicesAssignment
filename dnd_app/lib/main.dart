@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
 
-
 // Imports for other screens
 import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
@@ -12,12 +11,12 @@ import 'login.dart';
 import 'userDatabase.dart';
 
 void main() async {
-
-  databaseFactory = databaseFactoryFfi;
+  //databaseFactory = databaseFactoryFfi;
   runApp(MyApp());
 
   runApp(MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -55,7 +54,7 @@ class MyApp extends StatelessWidget {
 
 class HomePage extends StatefulWidget {
   final String username; // Add username parameter
-  
+
   const HomePage({super.key, required this.username}); // Update constructor
 
   @override
@@ -84,7 +83,7 @@ class _HomePageState extends State<HomePage> {
         title: Text("D&D Companion App"),
         actions: [
           IconButton(
-            onPressed: null, 
+            onPressed: null,
             icon: Icon(Icons.account_circle),
             tooltip: widget.username, // Show username as tooltip
           ),
@@ -95,8 +94,8 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
               );
-            }, 
-            icon: Icon(Icons.logout)
+            },
+            icon: Icon(Icons.logout),
           ),
         ],
       ),
@@ -105,7 +104,10 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
-            Text("Welcome, ${widget.username}", style: TextStyle(fontSize: 30)), // Use the username
+            Text(
+              "Welcome, ${widget.username}",
+              style: TextStyle(fontSize: 30),
+            ), // Use the username
             // Idea: have the title change greetings based on the time of day
             SizedBox(height: 40),
             Row(
