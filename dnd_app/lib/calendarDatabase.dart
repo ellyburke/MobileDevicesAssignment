@@ -144,6 +144,16 @@ class CalendarDatabase {
     return db.delete('calendar', where: 'id = ?', whereArgs: [eventId]);
   }
 
+  Future<int> deleteEventByDateTime(DateTime date, String time) async {
+    final db = await instance.database;
+    final yyyyMmDd = CalendarEvent._yyyyMmDd(date);
+    return db.delete(
+      'calendar',
+      where: 'date = ? AND time = ?',
+      whereArgs: [yyyyMmDd, time],
+    );
+  }
+
   Future<void> close() async {
     final db = _database;
     if (db != null) {

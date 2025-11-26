@@ -183,6 +183,15 @@ class _SessionsPageState extends State<SessionsPage> {
         payload:
             'Notification Payload', // Optional payload for notification taps
       );
+      /*
+      In case we want to delete the session as soon as the user gets the notification
+      await CalendarDatabase.instance.deleteEventByDateTime(date, time);
+      final refreshedList = CalendarDatabase.instance.getAllEvents();
+
+      setState(() {
+        eventsList = refreshedList;
+      });
+       */
     });
   }
 
