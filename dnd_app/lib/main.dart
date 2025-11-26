@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 
 // Imports for other screens
 import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
-
-import 'package:dnd_app/userDatabase.dart';
+import 'login.dart';
+import 'userDatabase.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await UserDatabase.instance.deleteOldDatabase(); // ONLY USED FOR TESTING
+  //databaseFactory = databaseFactoryFfi;
+  runApp(MyApp());
+
   runApp(MyApp());
 }
 
@@ -44,13 +47,15 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black,
         ),
       ),
-      home: const HomePage(),
+      home: const LoginPage(), // Changed from HomePage to LoginPage
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String username; // Add username parameter
+
+  const HomePage({super.key, required this.username}); // Update constructor
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -77,8 +82,21 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text("D&D Companion App"),
         actions: [
-          IconButton(onPressed: null, icon: Icon(Icons.account_circle)),
-          IconButton(onPressed: null, icon: Icon(Icons.logout)),
+          IconButton(
+            onPressed: null,
+            icon: Icon(Icons.account_circle),
+            tooltip: widget.username, // Show username as tooltip
+          ),
+          IconButton(
+            onPressed: () {
+              // Add logout functionality here
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+            icon: Icon(Icons.logout),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -86,7 +104,10 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
-            Text("Welcome, User", style: TextStyle(fontSize: 30)),
+            Text(
+              "Welcome, ${widget.username}",
+              style: TextStyle(fontSize: 30),
+            ), // Use the username
             // Idea: have the title change greetings based on the time of day
             SizedBox(height: 40),
             Row(
