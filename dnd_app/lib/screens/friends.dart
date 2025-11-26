@@ -13,10 +13,11 @@ class FriendsPage extends StatefulWidget{
 
 class _FriendsPageState extends State<FriendsPage>{
   //Store the current logged in user id
-  final int userId = 11;
+  final int userId = 12;
 
   // Get the list of friends in the database
   late Future<List<User>> friendsData;
+  late Future<List<User>> usersData;
 
   // Store a bool to by pass filtered list initialization
   bool _initialized = false;
@@ -33,7 +34,7 @@ class _FriendsPageState extends State<FriendsPage>{
   TextEditingController searchController = TextEditingController();
 
   Future<void> refreshData() async {
-    final refreshedData = await UserDatabase.instance.getAllUser();
+    final refreshedData = await UserDatabase.instance.getFriends(userId);
 
     setState(() {
       friendsList = refreshedData;
@@ -100,10 +101,19 @@ class _FriendsPageState extends State<FriendsPage>{
     refreshData();
   }
 
-  void removeFriend(int id){
-    UserDatabase.instance.deleteUser(id);
+  void removeFriend(int id, int friendId){
+    UserDatabase.instance.removeFriend(id, friendId);
     refreshData();
   }
+
+  Future<void> printUsers() async {
+    final users = await UserDatabase.instance.getAllUser();
+
+    for (var user in users) {
+      print("ID: ${user.id}, Username: ${user.username}, Name: ${user.firstName} ${user.lastName}");
+    }
+  }
+
 
   @override
   void initState() {
@@ -149,21 +159,22 @@ class _FriendsPageState extends State<FriendsPage>{
               ElevatedButton(
                 onPressed: () async {
                   final result = await showAddFriendDialog(context);
-
                   if (result != null){
-                    final int newId = result['id'];
-                    if (!friendsList.contains(newId)){
-                      addFriend(newId);
+                    // Check if they are already friends
+                    final alreadyFriends = friendsList.any((u) => u.id == result.id);
+
+                    if (alreadyFriends){
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("New friend added successfully!"),
+                          content: Text("This person is already your friend"),
                         ),
                       );
                     }
                     else{
+                      addFriend(result.id!);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("This person is already your friend"),
+                          content: Text("New friend added successfully!"),
                         ),
                       );
                     }
@@ -298,11 +309,11 @@ class _FriendsPageState extends State<FriendsPage>{
   // ==============================
   // Add friend dialog
   // ==============================
-  Future<Map<String, dynamic>?> showAddFriendDialog(BuildContext context) async {
+  Future<User?> showAddFriendDialog(BuildContext context) async {
     final usernameController = TextEditingController();
     String? errorText;
 
-    return showDialog<Map<String, dynamic>?>(
+    return showDialog<User?>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -338,10 +349,7 @@ class _FriendsPageState extends State<FriendsPage>{
                         errorText = "User not found";
                       });
                     } else {
-                      Navigator.pop(context, {
-                        "username": usernameController.text.trim(),
-                        "id": user.id,
-                      });
+                      Navigator.pop(context, user);
                     }
                   },
                   child: const Text("Add"),

@@ -167,12 +167,12 @@ class UserDatabase {
     return await updateUser(user);
   }
 
-  Future<int> removeFriend(int id, int friend_id) async {
+  Future<int> removeFriend(int id, int friendId) async {
     final user = await getUserById(id);
     if (user == null) {
       throw Exception('User not found');
     }
-    user.friends.remove(friend_id);
+    user.friends.remove(friendId);
     return await updateUser(user);
   }
 
