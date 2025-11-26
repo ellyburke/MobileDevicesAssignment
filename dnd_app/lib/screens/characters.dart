@@ -40,20 +40,16 @@ class _CharacterPageState extends State<CharacterPage> {
                 // async
                 null;
                 // // Navigate to new character form
-                final newCharacter = await Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => NewCharacterForm()),
                 );
 
                 // // Add character to the database if not null
                 setState(() async {
-                  if (newCharacter != null) {
-                    await CharacterDatabase.instance.create(newCharacter);
-                    // Refresh list
-                    final refreshedList = CharacterDatabase.instance
-                        .readAllCharacters();
-                    characterList = refreshedList;
-                  }
+                  final refreshedList = CharacterDatabase.instance
+                      .readAllCharacters();
+                  characterList = refreshedList;
                 });
               },
               child: Row(

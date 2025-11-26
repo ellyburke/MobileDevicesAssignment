@@ -22,8 +22,11 @@ final _wisdomController = TextEditingController();
 final _charismaController = TextEditingController();
 final _armorClassController = TextEditingController();
 final _appearanceController = TextEditingController();
+final _backgroundController = TextEditingController();
+final _levelController = TextEditingController();
 
 int? hp = 0;
+int hitDie = 0;
 int? strength = 0;
 int? dexterity = 0;
 int? intelligence = 0;
@@ -86,10 +89,15 @@ Map<String, dynamic>? abilityBonus;
 List<String> features = [];
 List<String>? traits;
 List<String>? equipment;
-int proficiencies = 2;
+int proficiencies = 0;
 List<String> languages = [];
 List<String>? raceLanguages;
 List<String> selectedSpells = [];
+String speedInfo = '';
+String sizeInfo = '';
+String abilityBonusText = '';
+String languageText = '';
+String traitText = '';
 
 class NewCharacterForm extends StatefulWidget {
   const NewCharacterForm({super.key});
@@ -143,16 +151,21 @@ class _NewCharacterFormState extends State<NewCharacterForm> {
               // SUBMIT BUTTON
               // ===============================
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   // Validate all form fields before proceeding
                   if (_formKey.currentState!.validate()) {
                     //setState(() async {
                     // STEP 2: return character object
                     name = _nameController.text;
-                    Navigator.push(
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => RaceSelector()),
                     );
+                    if (result != null) {
+                      if (context.mounted) {
+                        Navigator.pop(context, result);
+                      }
+                    }
                     //});
                   }
                 },
@@ -220,6 +233,11 @@ class _RaceSelectorState extends State<RaceSelector> {
         traits = traitList
             .map((t) => (t as Map<String, dynamic>)['name'] as String)
             .toList();
+        sizeInfo = 'Size: $size';
+        speedInfo = 'Speed: ${speed.toString()}';
+        abilityBonusText = '$race Ability Bonuses';
+        languageText = "Languages Known as $race";
+        traitText = "$race traits";
       });
     } else {
       throw Exception('Failed to load Race Info');
@@ -230,235 +248,242 @@ class _RaceSelectorState extends State<RaceSelector> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Choose your race")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            DropdownButtonFormField<String>(
-              initialValue: race,
-              decoration: InputDecoration(
-                hintText: 'Select a Race',
-                hintStyle: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.4),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: race,
+                decoration: InputDecoration(
+                  hintText: 'Select a Race',
+                  hintStyle: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
                 ),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
-              ),
-              isExpanded: true,
-              items: options.map((text) {
-                return DropdownMenuItem<String>(
-                  value: text,
-                  child: Center(child: Text(text)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                race = value!;
-                setState(() {
-                  getRaceInfo();
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-            if (race == 'Dragonborn')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Dragonborn.jpg',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.cover, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: https://mythopedia.com/name-generator/dnd-dragonborn-names",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Dwarf')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Dwarf.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: https://www.dndbeyond.com/species/13-dwarf",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Elf')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Elf.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: https://astral-reach.fandom.com/wiki/Elves",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Gnome')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Gnome.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: https://criticalrole.miraheze.org/wiki/Gnome",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Half-Elf')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Half-Elf.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/20-half-elf",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Half-Orc')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Half-Orc.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/2-half-orc",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Halfling')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Halfling.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/14-halfling",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Human')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Human.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/1-human",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-
-            if (race == 'Tiefling')
-              Column(
-                children: [
-                  Image.asset(
-                    'assets/images/Tiefling.png',
-                    width: 250,
-                    height: 250, //500
-                    fit: BoxFit.contain, // Try cover, contain, fill
-                  ),
-                  Text(
-                    "Source: www.dndbeyond.com/species/7-tiefling",
-                    style: TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-            SizedBox(height: 16.0),
-            Text('Speed: ${speed.toString()}'),
-            Text('Size: ${size}'),
-            SizedBox(height: 16.0),
-            Text(
-              '$race Ability Bonuses',
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (abilityBonus != null)
-              for (final entry in abilityBonus!.entries)
-                Text('${entry.key} +${entry.value}'),
-            SizedBox(height: 16.0),
-            Text(
-              "Languages Known as $race",
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (raceLanguages != null && raceLanguages!.isNotEmpty)
-              for (var j in raceLanguages!) Text(j),
-            SizedBox(height: 16.0),
-            Text(
-              "$race traits",
-              style: TextStyle(
-                color: Color(0xFFA23E2E),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (traits != null && traits!.isNotEmpty)
-              for (var i in traits!) Text(i),
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SelectClass()),
+                isExpanded: true,
+                items: options.map((text) {
+                  return DropdownMenuItem<String>(
+                    value: text,
+                    child: Center(child: Text(text)),
                   );
+                }).toList(),
+                onChanged: (value) {
+                  race = value!;
+                  setState(() {
+                    getRaceInfo();
+                  });
                 },
-                child: Text("Confirm"),
               ),
-            ),
-          ],
+              SizedBox(height: 16.0),
+              if (race == 'Dragonborn')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Dragonborn.jpg',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.cover, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: https://mythopedia.com/name-generator/dnd-dragonborn-names",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Dwarf')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Dwarf.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: https://www.dndbeyond.com/species/13-dwarf",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Elf')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Elf.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: https://astral-reach.fandom.com/wiki/Elves",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Gnome')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Gnome.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: https://criticalrole.miraheze.org/wiki/Gnome",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Half-Elf')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Half-Elf.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/20-half-elf",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Half-Orc')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Half-Orc.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/2-half-orc",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Halfling')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Halfling.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/14-halfling",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Human')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Human.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/1-human",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+
+              if (race == 'Tiefling')
+                Column(
+                  children: [
+                    Image.asset(
+                      'assets/images/Tiefling.png',
+                      width: 250,
+                      height: 250, //500
+                      fit: BoxFit.contain, // Try cover, contain, fill
+                    ),
+                    Text(
+                      "Source: www.dndbeyond.com/species/7-tiefling",
+                      style: TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+              SizedBox(height: 16.0),
+              Text(speedInfo),
+              Text(sizeInfo),
+              SizedBox(height: 16.0),
+              Text(
+                abilityBonusText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (abilityBonus != null)
+                for (final entry in abilityBonus!.entries)
+                  Text('${entry.key} +${entry.value}'),
+              SizedBox(height: 16.0),
+              Text(
+                languageText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (raceLanguages != null && raceLanguages!.isNotEmpty)
+                for (var j in raceLanguages!) Text(j),
+              SizedBox(height: 16.0),
+              Text(
+                traitText,
+                style: TextStyle(
+                  color: Color(0xFFA23E2E),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (traits != null && traits!.isNotEmpty)
+                for (var i in traits!) Text(i),
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SelectClass()),
+                    );
+                    if (result != null) {
+                      if (context.mounted) {
+                        Navigator.pop(context, result);
+                      }
+                    }
+                  },
+                  child: Text("Confirm"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -538,7 +563,7 @@ class SelectClassState extends State<SelectClass> {
         skillCount = count;
         skillDesc = firstChoice['desc'] as String;
         selectedSkills = List<String?>.filled(count, null);
-        hp = decoded['hit_die'];
+        hitDie = decoded['hit_die'];
       });
     } else {
       debugPrint(
@@ -552,66 +577,90 @@ class SelectClassState extends State<SelectClass> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Choose your class")),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("You will start at level 1"),
-            SizedBox(height: 8.0),
-            Text("You will be able to level up later"),
-            SizedBox(height: 8.0),
-            Text("For now, choose your first class"),
-            DropdownButtonFormField<String>(
-              initialValue: selectedClass,
-              decoration: InputDecoration(
-                hintText: "Select a Class",
-                hintStyle: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.4),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("What Level is your Character 1-20"),
+              SizedBox(height: 8.0),
+              TextFormField(
+                controller: _levelController,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: 'Character level',
+                  hintStyle: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.4),
+                  ),
                 ),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
+                onChanged: (value) {
+                  setState(() {
+                    final parsed = int.tryParse(value);
+                    if (parsed != null && parsed >= 1 && parsed <= 20) {
+                      level = parsed;
+                    } else {
+                      level = 1;
+                    }
+                  });
+                },
               ),
-              isExpanded: true,
-              items: options.map((text) {
-                return DropdownMenuItem<String>(
-                  value: text,
-                  child: Center(child: Text(text)),
-                );
-              }).toList(),
-              onChanged: (value) async {
-                if (value == null) return;
+              SizedBox(height: 8.0),
+              Text("Now, choose your first class"),
+              DropdownButtonFormField<String>(
+                initialValue: selectedClass,
+                decoration: InputDecoration(
+                  hintText: "Select a Class",
+                  hintStyle: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                ),
+                isExpanded: true,
+                items: options.map((text) {
+                  return DropdownMenuItem<String>(
+                    value: text,
+                    child: Center(child: Text(text)),
+                  );
+                }).toList(),
+                onChanged: (value) async {
+                  if (value == null) return;
 
-                setState(() {
-                  selectedClass = value;
-                  charClass ??= {};
-                  charClass![selectedClass!] = 1;
-                  skillDesc = null;
-                  skills = null;
-                  skillCount = null;
-                });
+                  setState(() {
+                    selectedClass = value;
+                    charClass ??= {};
+                    charClass![selectedClass!] = 1;
+                    skillDesc = null;
+                    skills = null;
+                    skillCount = null;
+                  });
 
-                await getSkills(value);
-              },
-            ),
-            SizedBox(height: 8.0),
-            if (skillDesc != null) ...[
-              Text(skillDesc!),
-              const SizedBox(height: 8.0),
-            ],
-            if (skills != null &&
-                skills!.isNotEmpty &&
-                skillCount != null &&
-                skillCount! > 0 &&
-                selectedSkills.length == skillCount)
-              Expanded(
-                child: ListView.builder(
+                  await getSkills(value);
+                },
+              ),
+              SizedBox(height: 8.0),
+              if (skillDesc != null) ...[
+                Text(skillDesc!),
+                const SizedBox(height: 8.0),
+              ],
+              if (skills != null &&
+                  skills!.isNotEmpty &&
+                  skillCount != null &&
+                  skillCount! > 0 &&
+                  selectedSkills.length == skillCount)
+                ListView.builder(
+                  shrinkWrap: true,
                   itemCount: skillCount!,
                   itemBuilder: (context, index) {
                     final String? currentValue = index < selectedSkills.length
@@ -643,36 +692,32 @@ class SelectClassState extends State<SelectClass> {
                     );
                   },
                 ),
-              ),
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  skillBonuses.updateAll(
-                    (key, value) => selectedSkills.contains(key),
-                  );
-                  if (selectedClass == 'Bard' ||
-                      selectedClass == 'Druid' ||
-                      selectedClass == 'Cleric' ||
-                      selectedClass == 'Wizard' ||
-                      selectedClass == 'Sorcerer' ||
-                      selectedClass == 'Warlock') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => pickSpells()),
+
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    skillBonuses.updateAll(
+                      (key, value) => selectedSkills.contains(key),
                     );
-                  } else {
-                    Navigator.push(
+                    final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => statsPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const statsPage(),
+                      ),
                     );
-                  }
-                },
-                child: Text("Confirm"),
+                    if (result != null) {
+                      if (context.mounted) {
+                        Navigator.pop(context, result);
+                      }
+                    }
+                  },
+                  child: Text("Confirm"),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -689,7 +734,9 @@ class pickSpells extends StatefulWidget {
 class SpellSummary {
   final String index;
   final String name;
-  final int level; // 0 = cantrip, 1 = level 1
+
+  /// Actual spell level from the API: 0–9
+  final int level;
 
   SpellSummary({required this.index, required this.name, required this.level});
 }
@@ -750,105 +797,151 @@ class pickSpellsState extends State<pickSpells> {
   bool _isLoading = true;
   String? _error;
 
+  /// How many cantrips the class knows at this level.
   int _cantripLimit = 0;
-  int _level1Limit = 0;
-  List<String> _autoLevel1SpellIndices = []; // for cleric
 
+  /// Max leveled spells (your “prepared spells”) the character can choose.
+  int _maxPrepared = 0;
+
+  /// Cantrip spells (level 0)
   List<SpellSummary> _cantripSpells = [];
-  List<SpellSummary> _level1Spells = [];
 
+  /// All leveled spells grouped by their spell level (1–9).
+  /// e.g. { 1: [...], 2: [...], 3: [...] }
+  Map<int, List<SpellSummary>> _leveledSpells = {};
+
+  /// Optional cache so Info button doesn’t refetch the same spell twice.
   final Map<String, SpellDetails> _detailsCache = {};
+
+  /// Cleric auto-known L1 spells
+  final List<String> _autoLevel1SpellIndices = ['bless', 'cure-wounds'];
 
   @override
   void initState() {
     super.initState();
-    _configureLimits();
     _loadSpells();
   }
 
-  void _configureLimits() {
+  int _getCastingModForClass() {
     final cls = selectedClass?.toLowerCase();
 
-    switch (cls) {
-      case 'druid':
-        _cantripLimit = 2;
-        _level1Limit = 0;
-        _autoLevel1SpellIndices = [];
-        break;
-      case 'bard':
-        _cantripLimit = 2;
-        _level1Limit = 4;
-        _autoLevel1SpellIndices = [];
-        break;
-      case 'wizard':
-        _cantripLimit = 3;
-        _level1Limit = 6;
-        _autoLevel1SpellIndices = [];
-        break;
-      case 'sorcerer':
-        _cantripLimit = 4;
-        _level1Limit = 2;
-        _autoLevel1SpellIndices = [];
-        break;
-      case 'warlock':
-        _cantripLimit = 2;
-        _level1Limit = 2;
-        _autoLevel1SpellIndices = [];
-        break;
-      case 'cleric':
-        _cantripLimit = 3;
-        _level1Limit = 0; // they don't choose L1 spells
-        _autoLevel1SpellIndices = ['bless', 'cure-wounds'];
-        break;
-      default:
-        _cantripLimit = 0;
-        _level1Limit = 0;
-        _autoLevel1SpellIndices = [];
+    int abilityScore;
+
+    if (cls == 'wizard') {
+      abilityScore = intelligence ?? 10;
+    } else if (cls == 'cleric' || cls == 'druid' || cls == 'ranger') {
+      abilityScore = wisdom ?? 10;
+    } else if (cls == 'warlock' ||
+        cls == 'paladin' ||
+        cls == 'sorcerer' ||
+        cls == 'bard') {
+      abilityScore = charisma ?? 10;
+    } else {
+      abilityScore = 10; // fallback
     }
+
+    return ((abilityScore - 10) ~/ 2);
   }
 
   Future<void> _loadSpells() async {
     try {
       final clsIndex = selectedClass?.toLowerCase();
-      if (clsIndex == null) {
+      final lvl = level;
+
+      if (clsIndex == null || lvl == null) {
         setState(() {
           _isLoading = false;
-          _error = 'No class selected.';
+          _error = 'Class or level not set.';
         });
         return;
       }
 
-      final classResp = await http.get(
-        Uri.parse('https://www.dnd5eapi.co/api/2014/classes/$clsIndex/spells'),
+      // 1. Get class levels for spellcasting + prof + cantrips
+      final levelsResp = await http.get(
+        Uri.parse('https://www.dnd5eapi.co/api/2014/classes/$clsIndex/levels'),
       );
 
-      if (classResp.statusCode != 200) {
-        throw Exception('Failed to load class spells: ${classResp.body}');
+      if (levelsResp.statusCode != 200) {
+        throw Exception('Failed to load class levels: ${levelsResp.body}');
       }
 
-      final decoded = jsonDecode(classResp.body) as Map<String, dynamic>;
-      final results = decoded['results'] as List<dynamic>? ?? [];
+      final levelsJson = jsonDecode(levelsResp.body) as List<dynamic>;
+      final Map<String, dynamic> levelMap = levelsJson
+          .cast<Map<String, dynamic>>()
+          .firstWhere((e) => e['level'] == lvl);
+
+      // prof_bonus → global proficiencies
+      final profBonus = levelMap['prof_bonus'] as int?;
+      if (profBonus != null) {
+        proficiencies = profBonus;
+      }
+
+      // spellcasting block
+      final spellcasting = levelMap['spellcasting'] as Map<String, dynamic>?;
+
+      if (spellcasting != null) {
+        _cantripLimit = spellcasting['cantrips_known'] as int? ?? 0;
+
+        for (var i = 1; i <= 9; i++) {
+          final key = 'spell_slots_level_$i';
+          final slots = spellcasting[key] as int? ?? 0;
+          spellSlots['Level $i'] = slots;
+        }
+
+        // All casters treated as prepared casters: limit = level + casting mod
+        final mod = _getCastingModForClass();
+        _maxPrepared = (lvl + mod).clamp(1, 99);
+      } else {
+        // No spellcasting at this level (e.g. Paladin/Ranger before 2)
+        _cantripLimit = 0;
+        _maxPrepared = 0;
+        for (var i = 1; i <= 9; i++) {
+          spellSlots['Level $i'] = 0;
+        }
+      }
+
+      // 2. Fetch the spells for this class & level
+      final spellsResp = await http.get(
+        Uri.parse(
+          'https://www.dnd5eapi.co/api/2014/classes/$clsIndex/levels/$lvl/spells',
+        ),
+      );
+
+      if (spellsResp.statusCode != 200) {
+        throw Exception(
+          'Failed to load spells for $clsIndex level $lvl: ${spellsResp.body}',
+        );
+      }
+
+      final spellsJson = jsonDecode(spellsResp.body) as Map<String, dynamic>;
+      final results = spellsJson['results'] as List<dynamic>? ?? [];
 
       final List<SpellSummary> cantrips = [];
-      final List<SpellSummary> level1 = [];
+      final Map<int, List<SpellSummary>> leveled = {};
 
+      // Fetch details sequentially (avoid hammering the API)
       for (final s in results) {
         final index = s['index'] as String;
-
         final details = await _fetchSpellDetails(index);
 
         if (details.level == 0) {
           cantrips.add(
             SpellSummary(index: details.index, name: details.name, level: 0),
           );
-        } else if (details.level == 1) {
-          level1.add(
-            SpellSummary(index: details.index, name: details.name, level: 1),
+        } else if (details.level >= 1 && details.level <= 9) {
+          leveled.putIfAbsent(details.level, () => []);
+          leveled[details.level]!.add(
+            SpellSummary(
+              index: details.index,
+              name: details.name,
+              level: details.level,
+            ),
           );
         }
       }
 
-      if (_autoLevel1SpellIndices.isNotEmpty) {
+      // Auto-add Cleric L1 spells if this is a cleric
+      if (selectedClass?.toLowerCase() == 'cleric') {
         for (final idx in _autoLevel1SpellIndices) {
           if (!selectedSpells.contains(idx)) {
             selectedSpells.add(idx);
@@ -858,7 +951,7 @@ class pickSpellsState extends State<pickSpells> {
 
       setState(() {
         _cantripSpells = cantrips;
-        _level1Spells = level1;
+        _leveledSpells = leveled;
         _isLoading = false;
         _error = null;
       });
@@ -871,6 +964,7 @@ class pickSpellsState extends State<pickSpells> {
   }
 
   Future<SpellDetails> _fetchSpellDetails(String index) async {
+    // Check cache first
     if (_detailsCache.containsKey(index)) {
       return _detailsCache[index]!;
     }
@@ -899,18 +993,31 @@ class pickSpellsState extends State<pickSpells> {
         .length;
   }
 
-  int _selectedLevel1Count() {
-    return _level1Spells
-        .where((spell) => selectedSpells.contains(spell.index))
-        .length;
+  int _selectedLeveledCount() {
+    int total = 0;
+    _leveledSpells.forEach((lvl, spellsAtLevel) {
+      total += spellsAtLevel
+          .where((s) => selectedSpells.contains(s.index))
+          .length;
+    });
+    return total;
   }
 
-  void _toggleSpell(SpellSummary spell) {
-    final isCantrip = spell.level == 0;
-    final isLevel1 = spell.level == 1;
-    final cls = selectedClass?.toLowerCase();
+  int get _leveledLimit => _maxPrepared;
 
-    if (!isCantrip && !isLevel1) {
+  void _toggleSpell(SpellSummary spell) {
+    final cls = selectedClass?.toLowerCase();
+    final isCantrip = spell.level == 0;
+
+    // Cleric: still auto-knows Bless + Cure Wounds; can't choose other L1s.
+    if (cls == 'cleric' && spell.level == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Clerics automatically know Bless and Cure Wounds instead of choosing level 1 spells.',
+          ),
+        ),
+      );
       return;
     }
 
@@ -925,7 +1032,7 @@ class pickSpellsState extends State<pickSpells> {
 
     if (isCantrip) {
       final count = _selectedCantripCount();
-      if (count >= _cantripLimit) {
+      if (_cantripLimit > 0 && count >= _cantripLimit) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -935,26 +1042,21 @@ class pickSpellsState extends State<pickSpells> {
         );
         return;
       }
-    } else if (isLevel1) {
-      if (cls == 'cleric') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Clerics automatically know Bless and Cure Wounds.'),
-          ),
-        );
-        return;
-      }
-
-      final count = _selectedLevel1Count();
-      if (count >= _level1Limit) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'You can only select $_level1Limit level 1 spell(s) as a $selectedClass.',
+    } else {
+      // All leveled spells share the same cap (_maxPrepared)
+      final leveledLimit = _leveledLimit;
+      if (leveledLimit > 0) {
+        final current = _selectedLeveledCount();
+        if (current >= leveledLimit) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'You can only select $leveledLimit leveled spell(s) as a $selectedClass.',
+              ),
             ),
-          ),
-        );
-        return;
+          );
+          return;
+        }
       }
     }
 
@@ -1064,16 +1166,17 @@ class pickSpellsState extends State<pickSpells> {
   @override
   Widget build(BuildContext context) {
     final cantripSelected = _selectedCantripCount();
-    final level1Selected = _selectedLevel1Count();
+    final leveledSelected = _selectedLeveledCount();
+    final leveledLimit = _leveledLimit;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Select your Spells")),
       body: _isLoading
           ? Center(
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+                children: const [
                   Text("Loading, This may take a while..."),
                   SizedBox(height: 8.0),
                   CircularProgressIndicator(),
@@ -1089,8 +1192,8 @@ class pickSpellsState extends State<pickSpells> {
                 children: [
                   const SizedBox(height: 12),
                   Text(
-                    'Class: $selectedClass',
-                    style: TextStyle(
+                    'Class: $selectedClass (Level $level)',
+                    style: const TextStyle(
                       color: Color(0xFFA23E2E),
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -1098,29 +1201,30 @@ class pickSpellsState extends State<pickSpells> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Cantrips: choose $_cantripLimit '
-                    '(selected: $cantripSelected)',
-                    style: TextStyle(
+                    'Cantrips: choose $_cantripLimit (selected: $cantripSelected)',
+                    style: const TextStyle(
                       decoration: TextDecoration.underline,
                       fontSize: 18,
                     ),
                   ),
-                  Text(
-                    'Level 1 spells: choose $_level1Limit '
-                    '(selected: $level1Selected)',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 18,
-                    ),
-                  ),
-                  if (selectedClass?.toLowerCase() == 'cleric')
-                    const Padding(
-                      padding: EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'As a Cleric, you automatically know Bless and Cure Wounds.',
-                        style: TextStyle(fontStyle: FontStyle.italic),
+                  if (leveledLimit > 0) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Leveled spells: choose up to $leveledLimit (selected: $leveledSelected)',
+                      style: const TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 18,
                       ),
                     ),
+                  ],
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Spell Slots:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  for (var lvl = 1; lvl <= 9; lvl++)
+                    if ((spellSlots['Level $lvl'] ?? 0) > 0)
+                      Text('Level $lvl: ${spellSlots['Level $lvl']} slot(s)'),
                   const SizedBox(height: 12),
                   Expanded(
                     child: ListView(
@@ -1134,14 +1238,19 @@ class pickSpellsState extends State<pickSpells> {
                           ..._cantripSpells.map(_buildSpellRow).toList(),
                           const SizedBox(height: 16),
                         ],
-                        if (_level1Spells.isNotEmpty) ...[
-                          Text(
-                            'Level 1 Spells',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          ..._level1Spells.map(_buildSpellRow).toList(),
-                          const SizedBox(height: 16),
+                        for (var lvl = 1; lvl <= 9; lvl++) ...[
+                          if (_leveledSpells[lvl] != null &&
+                              _leveledSpells[lvl]!.isNotEmpty) ...[
+                            Text(
+                              'Level $lvl Spells',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            ..._leveledSpells[lvl]!
+                                .map(_buildSpellRow)
+                                .toList(),
+                            const SizedBox(height: 16),
+                          ],
                         ],
                       ],
                     ),
@@ -1150,13 +1259,18 @@ class pickSpellsState extends State<pickSpells> {
                     padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
                     child: Center(
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const statsPage(),
+                              builder: (context) => const backgroundPage(),
                             ),
                           );
+                          if (result != null) {
+                            if (context.mounted) {
+                              Navigator.pop(context, result);
+                            }
+                          }
                         },
                         child: const Text('Confirm Spells'),
                       ),
@@ -1176,6 +1290,30 @@ class statsPage extends StatefulWidget {
 }
 
 class statsPageState extends State<statsPage> {
+  bool _classHasSpellsAtThisLevel() {
+    if (selectedClass == null || level == null) return false;
+
+    final cls = selectedClass!;
+    final lvl = level!;
+
+    // Full casters – spells from level 1
+    if (cls == 'Bard' ||
+        cls == 'Cleric' ||
+        cls == 'Druid' ||
+        cls == 'Wizard' ||
+        cls == 'Sorcerer' ||
+        cls == 'Warlock') {
+      return true;
+    }
+
+    // Half-casters – spells starting at level 2
+    if ((cls == 'Paladin' || cls == 'Ranger') && lvl >= 2) {
+      return true;
+    }
+
+    return false;
+  }
+
   int strbonus = abilityBonus?["STR"] ?? 0;
   int dexbonus = abilityBonus?["DEX"] ?? 0;
   int conbonus = abilityBonus?["CON"] ?? 0;
@@ -1192,289 +1330,316 @@ class statsPageState extends State<statsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Character Stats")),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text("Now it is time for you to roll for your stats"),
-              SizedBox(height: 8.0),
-              Text(
-                "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
-              ),
-              SizedBox(height: 16.0),
-              Text("Strength"),
-              SizedBox(height: 8.0),
-              Text(
-                "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _strengthController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          strTotal =
-                              (strbonus + int.parse(_strengthController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $strbonus = $strTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Dexterity"),
-              SizedBox(height: 8.0),
-              Text("Dexterity measures agility, reflexes, and balance."),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _dexterityController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          dexTotal =
-                              (dexbonus + int.parse(_dexterityController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $dexbonus = $dexTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Constitution"),
-              SizedBox(height: 8.0),
-              Text("Constitiution measures health, stamina, and vital force."),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _constitutionController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          conTotal =
-                              (conbonus +
-                              int.parse(_constitutionController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $conbonus = $conTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Intelligence"),
-              SizedBox(height: 8.0),
-              Text(
-                "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _intelligenceController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          intTotal =
-                              (intbonus +
-                              int.parse(_intelligenceController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $intbonus = $intTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Wisdom"),
-              SizedBox(height: 8.0),
-              Text(
-                "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _wisdomController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          wisTotal =
-                              (wisbonus + int.parse(_wisdomController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $wisbonus = $wisTotal'),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Text("Charisma"),
-              SizedBox(height: 8.0),
-              Text(
-                "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
-              ),
-              SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Container(
-                    width: 70,
-                    child: TextField(
-                      textAlign: TextAlign.start,
-                      controller: _charismaController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'base',
-                        hintStyle: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.4),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          chaTotal =
-                              (chabonus + int.parse(_charismaController.text));
-                        });
-                      },
-                    ),
-                  ),
-                  Text(' +  $chabonus = $chaTotal'),
-                ],
-              ),
-              SizedBox(height: 50.0),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    strength = strTotal;
-                    dexterity = dexTotal;
-                    constitution = conTotal;
-                    intelligence = intTotal;
-                    wisdom = wisTotal;
-                    charisma = chaTotal;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const backgroundPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('Confirm Stats'),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text("Now it is time for you to roll for your stats"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
                 ),
-              ),
-            ],
+                SizedBox(height: 16.0),
+                Text("Strength"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _strengthController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            strTotal =
+                                (strbonus +
+                                int.parse(_strengthController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $strbonus = $strTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Dexterity"),
+                SizedBox(height: 8.0),
+                Text("Dexterity measures agility, reflexes, and balance."),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _dexterityController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            dexTotal =
+                                (dexbonus +
+                                int.parse(_dexterityController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $dexbonus = $dexTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Constitution"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Constitiution measures health, stamina, and vital force.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _constitutionController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            conTotal =
+                                (conbonus +
+                                int.parse(_constitutionController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $conbonus = $conTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Intelligence"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _intelligenceController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            intTotal =
+                                (intbonus +
+                                int.parse(_intelligenceController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $intbonus = $intTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Wisdom"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _wisdomController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            wisTotal =
+                                (wisbonus + int.parse(_wisdomController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $wisbonus = $wisTotal'),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                Text("Charisma"),
+                SizedBox(height: 8.0),
+                Text(
+                  "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
+                ),
+                SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      child: TextField(
+                        textAlign: TextAlign.start,
+                        controller: _charismaController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'base',
+                          hintStyle: TextStyle(
+                            color: Colors.black.withValues(alpha: 0.4),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            chaTotal =
+                                (chabonus +
+                                int.parse(_charismaController.text));
+                          });
+                        },
+                      ),
+                    ),
+                    Text(' +  $chabonus = $chaTotal'),
+                  ],
+                ),
+                SizedBox(height: 50.0),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      strength = strTotal;
+                      dexterity = dexTotal;
+                      constitution = conTotal;
+                      intelligence = intTotal;
+                      wisdom = wisTotal;
+                      charisma = chaTotal;
+
+                      if (_classHasSpellsAtThisLevel()) {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const pickSpells(),
+                          ),
+                        );
+                        if (result != null) {
+                          if (context.mounted) {
+                            Navigator.pop(context, result);
+                          }
+                        }
+                      } else {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const backgroundPage(),
+                          ),
+                        );
+                        if (result != null) {
+                          if (context.mounted) {
+                            Navigator.pop(context, result);
+                          }
+                        }
+                      }
+                    },
+                    child: const Text('Confirm Stats'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1491,38 +1656,100 @@ class backgroundPage extends StatefulWidget {
 
 class backgroundState extends State<backgroundPage> {
   void addCharacter(Character character) async {
-    final newCharacter = Character(
-      hp: hp,
-      strength: strength,
-      dexterity: dexterity,
-      intelligence: intelligence,
-      constitution: constitution,
-      wisdom: wisdom,
-      charisma: charisma,
-      name: name,
-      race: race,
-      level: level,
-      armorClass: armorClass,
-      initiative: initiative,
-      speed: speed,
-      passivePerception: passivePerception,
-      background: "acolyte",
-      alignment: alignment,
-      charClass: charClass,
-      skillBonuses: skillBonuses,
-      features: features,
-      traits: traits,
-      proficiencies: proficiencies,
-      languages: languages,
-      size: size,
-      inventory: inventory,
-      equipment: equipment,
-      spells: selectedSpells,
-      spellCastingAbility: spellCastingAbility,
-      spellSlots: spellSlots,
-      appearance: appearance,
-    );
-    await CharacterDatabase.instance.create(newCharacter);
+    await CharacterDatabase.instance.create(character);
+  }
+
+  void resetCharacterGlobals() {
+    hp = 0;
+    strength = 0;
+    dexterity = 0;
+    intelligence = 0;
+    constitution = 0;
+    wisdom = 0;
+    charisma = 0;
+
+    name = null;
+    race = null;
+    level = 1;
+    armorClass = 0;
+    initiative = 0;
+    speed = 0;
+    passivePerception = 10;
+    background = null;
+    alignment = null;
+    appearance = null;
+    size = 'Small';
+
+    charClass = null;
+    selectedClass = null;
+
+    skillBonuses = {
+      'Athletics': false,
+      'Acrobatics': false,
+      'Sleight of Hand': false,
+      'Stealth': false,
+      'Arcana': false,
+      'History': false,
+      'Investigation': false,
+      'Nature': false,
+      'Religion': false,
+      'Animal Handling': false,
+      'Insight': false,
+      'Medicine': false,
+      'Perception': false,
+      'Survival': false,
+      'Deception': false,
+      'Intimidation': false,
+      'Performance': false,
+      'Persuasion': false,
+    };
+
+    inventory = {'Gold': 100};
+
+    spellCastingAbility = {
+      'Spell Casting Modifier': 0,
+      'Spell Save DC:': 0,
+      'Spell Attack Bonus': 0,
+    };
+
+    spellSlots = {
+      'Level 1': 0,
+      'Level 2': 0,
+      'Level 3': 0,
+      'Level 4': 0,
+      'Level 5': 0,
+      'Level 6': 0,
+      'Level 7': 0,
+      'Level 8': 0,
+      'Level 9': 0,
+    };
+
+    abilityBonus = null;
+
+    features = [];
+    traits = null;
+    equipment = null;
+    proficiencies = 0;
+    languages = [];
+    raceLanguages = null;
+    selectedSpells = [];
+
+    sizeInfo = '';
+    speedInfo = '';
+    abilityBonusText = '';
+    languageText = "";
+    traitText = "";
+
+    _nameController.clear();
+    _strengthController.clear();
+    _dexterityController.clear();
+    _constitutionController.clear();
+    _intelligenceController.clear();
+    _wisdomController.clear();
+    _charismaController.clear();
+    _armorClassController.clear();
+    _appearanceController.clear();
+    _levelController.clear();
   }
 
   final List<String?> selectedExtra = List<String?>.filled(2, null);
@@ -1558,205 +1785,229 @@ class backgroundState extends State<backgroundPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Character Info")),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("Now lets get the rest of your Characters information"),
-            SizedBox(height: 16.0),
-            Text("Choose 2 Languages to learn."),
-            SizedBox(height: 8.0),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: DropdownButtonFormField<String>(
-                    initialValue: selectedExtra[index],
-                    decoration: InputDecoration(
-                      labelText: 'Language ${index + 1}',
-                      border: const OutlineInputBorder(),
-                    ),
-                    isExpanded: true,
-                    items: extralanguages
-                        .map(
-                          (skill) => DropdownMenuItem<String>(
-                            value: skill,
-                            child: Text(skill),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedExtra[index] = value!;
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 16.0),
-            Text("Choose your characters alignment"),
-            DropdownButtonFormField<String>(
-              initialValue: alignment,
-              decoration: InputDecoration(
-                hintText: "Select an alignment",
-                hintStyle: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
-              ),
-              isExpanded: true,
-              items: alignOptions.map((text) {
-                return DropdownMenuItem<String>(
-                  value: text,
-                  child: Center(child: Text(text)),
-                );
-              }).toList(),
-              onChanged: (value) async {
-                if (value == null) return;
-                alignment = value;
-              },
-            ),
-            SizedBox(height: 16.0),
-            Text("Enter your Characters Armor Class"),
-            TextFormField(
-              textAlign: TextAlign.center,
-              controller: _armorClassController,
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              decoration: InputDecoration(
-                hintText: 'AC',
-                hintStyle: TextStyle(
-                  color: Colors.black.withValues(alpha: 0.4),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(color: Colors.grey, width: 2.0),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  armorClass = int.parse(_armorClassController.text);
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-            Text("Describe your characters appearance (optional)"),
-            SizedBox(height: 8.0),
-            TextFormField(
-              textAlign: TextAlign.start,
-              controller: _appearanceController,
-              decoration: InputDecoration(
-                hintText: 'How do they look',
-                hintStyle: TextStyle(
-                  color: Colors.black.withValues(alpha: 0.4),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide(color: Colors.grey, width: 2.0),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  appearance = _appearanceController.text;
-                });
-              },
-            ),
-            Spacer(),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    for (var i in selectedExtra) {
-                      languages.add(i!);
-                    }
-                    if (skillBonuses['perception'] == true) {
-                      passivePerception =
-                          ((((wisdom! - 10) ~/ 2) as int?)! + proficiencies);
-                    } else {
-                      passivePerception = (((wisdom! - 10) ~/ 2) as int?);
-                    }
-                    if (selectedClass == 'Wizard') {
-                      spellCastingAbility['Spell Casting Modifier'] =
-                          (((intelligence! - 10) ~/ 2));
-                    } else if (selectedClass == 'Cleric' ||
-                        selectedClass == 'Druid' ||
-                        selectedClass == 'Ranger') {
-                      spellCastingAbility['Spell Casting Modifier'] =
-                          ((wisdom! - 10) ~/ 2);
-                    } else if (selectedClass == 'Warlock' ||
-                        selectedClass == 'Paladin' ||
-                        selectedClass == 'Sorcerer' ||
-                        selectedClass == 'Bard') {
-                      spellCastingAbility['Spell Casting Modifier'] =
-                          ((charisma! - 10) ~/ 2);
-                    }
-                    spellCastingAbility['Spell Save DC'] =
-                        8 +
-                        proficiencies +
-                        spellCastingAbility['Spell Casting Modifier']!;
-                    spellCastingAbility['Spell Attack Bonus'] =
-                        proficiencies +
-                        spellCastingAbility['Spell Casting Modifier']!;
-                    initiative = (((dexterity! - 10) ~/ 2) as int?);
-                    Character character = Character(
-                      hp: hp,
-                      strength: strength,
-                      dexterity: dexterity,
-                      intelligence: intelligence,
-                      constitution: constitution,
-                      wisdom: wisdom,
-                      charisma: charisma,
-                      name: name,
-                      race: race,
-                      level: level,
-                      armorClass: armorClass,
-                      initiative: initiative,
-                      speed: speed,
-                      passivePerception: passivePerception,
-                      background: "acolyte",
-                      alignment: alignment,
-                      charClass: charClass,
-                      skillBonuses: skillBonuses,
-                      features: features,
-                      traits: traits,
-                      proficiencies: proficiencies,
-                      languages: languages,
-                      size: size,
-                      inventory: inventory,
-                      equipment: equipment,
-                      spells: selectedSpells,
-                      spellCastingAbility: spellCastingAbility,
-                      spellSlots: spellSlots,
-                      appearance: appearance,
-                    );
-                    addCharacter(character);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CharacterPage(),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Now lets get the rest of your Characters information"),
+              SizedBox(height: 16.0),
+              Text("Choose 2 Languages to learn."),
+              SizedBox(height: 8.0),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 2,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: DropdownButtonFormField<String>(
+                      initialValue: selectedExtra[index],
+                      decoration: InputDecoration(
+                        labelText: 'Language ${index + 1}',
+                        border: const OutlineInputBorder(),
                       ),
-                    );
-                  },
-                  child: const Text('Create Character'),
+                      isExpanded: true,
+                      items: extralanguages
+                          .map(
+                            (skill) => DropdownMenuItem<String>(
+                              value: skill,
+                              child: Text(skill),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedExtra[index] = value!;
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text("Choose your characters alignment"),
+              DropdownButtonFormField<String>(
+                initialValue: alignment,
+                decoration: InputDecoration(
+                  hintText: "Select an alignment",
+                  hintStyle: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                ),
+                isExpanded: true,
+                items: alignOptions.map((text) {
+                  return DropdownMenuItem<String>(
+                    value: text,
+                    child: Center(child: Text(text)),
+                  );
+                }).toList(),
+                onChanged: (value) async {
+                  if (value == null) return;
+                  alignment = value;
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text("Enter your Characters Armor Class"),
+              TextFormField(
+                textAlign: TextAlign.center,
+                controller: _armorClassController,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                decoration: InputDecoration(
+                  hintText: 'AC',
+                  hintStyle: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.4),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    armorClass = int.parse(_armorClassController.text);
+                  });
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text("Describe your characters appearance (optional)"),
+              SizedBox(height: 8.0),
+              TextFormField(
+                textAlign: TextAlign.start,
+                controller: _appearanceController,
+                decoration: InputDecoration(
+                  hintText: 'How do they look',
+                  hintStyle: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.4),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    appearance = _appearanceController.text;
+                  });
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text("Describe your characters background and origins"),
+              SizedBox(height: 8.0),
+              TextFormField(
+                textAlign: TextAlign.start,
+                controller: _backgroundController,
+                decoration: InputDecoration(
+                  hintText: 'Background',
+                  hintStyle: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.4),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey, width: 2.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    background = _backgroundController.text;
+                  });
+                },
+              ),
+              Spacer(),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      for (var i in selectedExtra) {
+                        languages.add(i!);
+                      }
+                      if (skillBonuses['Perception'] == true) {
+                        passivePerception =
+                            ((((wisdom! - 10) ~/ 2)) + proficiencies);
+                      } else {
+                        passivePerception = (((wisdom! - 10) ~/ 2));
+                      }
+                      if (selectedClass == 'Wizard') {
+                        spellCastingAbility['Spell Casting Modifier'] =
+                            (((intelligence! - 10) ~/ 2));
+                      } else if (selectedClass == 'Cleric' ||
+                          selectedClass == 'Druid' ||
+                          selectedClass == 'Ranger') {
+                        spellCastingAbility['Spell Casting Modifier'] =
+                            ((wisdom! - 10) ~/ 2);
+                      } else if (selectedClass == 'Warlock' ||
+                          selectedClass == 'Paladin' ||
+                          selectedClass == 'Sorcerer' ||
+                          selectedClass == 'Bard') {
+                        spellCastingAbility['Spell Casting Modifier'] =
+                            ((charisma! - 10) ~/ 2);
+                      }
+                      spellCastingAbility['Spell Save DC'] =
+                          8 +
+                          proficiencies +
+                          spellCastingAbility['Spell Casting Modifier']!;
+                      spellCastingAbility['Spell Attack Bonus'] =
+                          proficiencies +
+                          spellCastingAbility['Spell Casting Modifier']!;
+                      initiative = (((dexterity! - 10) ~/ 2) as int?);
+                      hp =
+                          ((level! - 1) * (hitDie ~/ 2) +
+                              ((constitution! - 10) ~/ 2)) +
+                          (hitDie + ((constitution! - 10) ~/ 2));
+                      Character character = Character(
+                        hp: hp,
+                        strength: strength,
+                        dexterity: dexterity,
+                        intelligence: intelligence,
+                        constitution: constitution,
+                        wisdom: wisdom,
+                        charisma: charisma,
+                        name: name,
+                        race: race,
+                        level: level,
+                        armorClass: armorClass,
+                        initiative: initiative,
+                        speed: speed,
+                        passivePerception: passivePerception,
+                        background: background ?? "Acolyte",
+                        alignment: alignment,
+                        charClass: charClass,
+                        skillBonuses: skillBonuses,
+                        features: features,
+                        traits: traits,
+                        proficiencies: proficiencies,
+                        languages: languages,
+                        size: size,
+                        inventory: inventory,
+                        equipment: equipment,
+                        spells: selectedSpells,
+                        spellCastingAbility: spellCastingAbility,
+                        spellSlots: spellSlots,
+                        appearance: appearance,
+                      );
+                      addCharacter(character);
+                      resetCharacterGlobals();
+                      Navigator.pop(context, character);
+                    },
+                    child: const Text('Create Character'),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
