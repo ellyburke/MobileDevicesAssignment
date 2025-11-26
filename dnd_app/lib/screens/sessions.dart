@@ -486,7 +486,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
 
   // Controller for attendees and attendee list
   final _attendeeController = TextEditingController();
-  List<String> _attendees = [];
+  final List<String> _attendees = [];
 
   void _pickDate() async {
     final date = await showDatePicker(

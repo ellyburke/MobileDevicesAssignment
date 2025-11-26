@@ -410,7 +410,7 @@ class _RaceSelectorState extends State<RaceSelector> {
               ),
             SizedBox(height: 16.0),
             Text('Speed: ${speed.toString()}'),
-            Text('Size: ${size}'),
+            Text('Size: $size'),
             SizedBox(height: 16.0),
             Text(
               '$race Ability Bonuses',
@@ -1131,7 +1131,7 @@ class pickSpellsState extends State<pickSpells> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
-                          ..._cantripSpells.map(_buildSpellRow).toList(),
+                          ..._cantripSpells.map(_buildSpellRow),
                           const SizedBox(height: 16),
                         ],
                         if (_level1Spells.isNotEmpty) ...[
@@ -1140,7 +1140,7 @@ class pickSpellsState extends State<pickSpells> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
-                          ..._level1Spells.map(_buildSpellRow).toList(),
+                          ..._level1Spells.map(_buildSpellRow),
                           const SizedBox(height: 16),
                         ],
                       ],
@@ -1213,7 +1213,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
@@ -1253,7 +1253,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
@@ -1293,7 +1293,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
@@ -1336,7 +1336,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
@@ -1379,7 +1379,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
@@ -1421,7 +1421,7 @@ class statsPageState extends State<statsPage> {
               SizedBox(height: 8.0),
               Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 70,
                     child: TextField(
                       textAlign: TextAlign.start,
