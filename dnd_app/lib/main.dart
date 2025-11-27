@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
-
-// Imports for other screens
 import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
-import 'login.dart'; // This now imports registration.dart indirectly
+import 'login.dart'; 
 
 void main() async {
   // Initialize sqflite for different platforms if needed
    //sqfliteFfiInit();
-   //databaseFactory = databaseFactoryFfi;
+  // databaseFactory = databaseFactoryFfi;
   
   runApp(MyApp());
 }

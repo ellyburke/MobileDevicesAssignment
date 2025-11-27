@@ -62,10 +62,10 @@ class _RegistrationFormState extends State<RegistrationForm> {
         return 'Birthday cannot be in the future';
       }
       
-      // Check if user is at least 5 years old
-      final minAge = DateTime.now().subtract(Duration(days: 5 * 365));
+      // checks if user is 12 (stranger things reference)
+      final minAge = DateTime.now().subtract(Duration(days: 12 * 365));
       if (date.isAfter(minAge)) {
-        return 'You must be at least 5 years old';
+        return 'You must be at least 12 years old';
       }
       
     } catch (e) {
