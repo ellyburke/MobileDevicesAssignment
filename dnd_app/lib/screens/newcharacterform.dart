@@ -163,7 +163,7 @@ class _NewCharacterFormState extends State<NewCharacterForm> {
                     );
                     if (result != null) {
                       if (context.mounted) {
-                        Navigator.pop(context, result);
+                        Navigator.pop(context, true);
                       }
                     }
                     //});
@@ -1171,114 +1171,119 @@ class pickSpellsState extends State<pickSpells> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Select your Spells")),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: const [
-                  Text("Loading, This may take a while..."),
-                  SizedBox(height: 8.0),
-                  CircularProgressIndicator(),
-                ],
-              ),
-            )
-          : _error != null
-          ? Center(child: Text(_error!))
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Text(
-                    'Class: $selectedClass (Level $level)',
-                    style: const TextStyle(
-                      color: Color(0xFFA23E2E),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    Text("Loading, This may take a while..."),
+                    SizedBox(height: 8.0),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              )
+            : _error != null
+            ? Center(child: Text(_error!))
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Text(
+                      'Class: $selectedClass (Level $level)',
+                      style: const TextStyle(
+                        color: Color(0xFFA23E2E),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Cantrips: choose $_cantripLimit (selected: $cantripSelected)',
-                    style: const TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 18,
-                    ),
-                  ),
-                  if (leveledLimit > 0) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Leveled spells: choose up to $leveledLimit (selected: $leveledSelected)',
+                      'Cantrips: choose $_cantripLimit (selected: $cantripSelected)',
                       style: const TextStyle(
                         decoration: TextDecoration.underline,
                         fontSize: 18,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Spell Slots:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  for (var lvl = 1; lvl <= 9; lvl++)
-                    if ((spellSlots['Level $lvl'] ?? 0) > 0)
-                      Text('Level $lvl: ${spellSlots['Level $lvl']} slot(s)'),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        if (_cantripSpells.isNotEmpty) ...[
-                          Text(
-                            'Cantrips',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          ..._cantripSpells.map(_buildSpellRow).toList(),
-                          const SizedBox(height: 16),
-                        ],
-                        for (var lvl = 1; lvl <= 9; lvl++) ...[
-                          if (_leveledSpells[lvl] != null &&
-                              _leveledSpells[lvl]!.isNotEmpty) ...[
+                    if (leveledLimit > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Leveled spells: choose up to $leveledLimit (selected: $leveledSelected)',
+                        style: const TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Spell Slots:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    for (var lvl = 1; lvl <= 9; lvl++)
+                      if ((spellSlots['Level $lvl'] ?? 0) > 0)
+                        Text('Level $lvl: ${spellSlots['Level $lvl']} slot(s)'),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          if (_cantripSpells.isNotEmpty) ...[
                             Text(
-                              'Level $lvl Spells',
+                              'Cantrips',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
-                            ..._leveledSpells[lvl]!
-                                .map(_buildSpellRow)
-                                .toList(),
+                            ..._cantripSpells.map(_buildSpellRow).toList(),
                             const SizedBox(height: 16),
                           ],
+                          for (var lvl = 1; lvl <= 9; lvl++) ...[
+                            if (_leveledSpells[lvl] != null &&
+                                _leveledSpells[lvl]!.isNotEmpty) ...[
+                              Text(
+                                'Level $lvl Spells',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              ..._leveledSpells[lvl]!
+                                  .map(_buildSpellRow)
+                                  .toList(),
+                              const SizedBox(height: 16),
+                            ],
+                          ],
                         ],
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const backgroundPage(),
-                            ),
-                          );
-                          if (result != null) {
-                            if (context.mounted) {
-                              Navigator.pop(context, result);
-                            }
-                          }
-                        },
-                        child: const Text('Confirm Spells'),
                       ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const backgroundPage(),
+                              ),
+                            );
+                            if (result != null) {
+                              if (context.mounted) {
+                                Navigator.pop(context, result);
+                              }
+                            }
+                          },
+                          child: const Text('Confirm Spells'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -1984,7 +1989,7 @@ class backgroundState extends State<backgroundPage> {
                         passivePerception: passivePerception,
                         background: background ?? "Acolyte",
                         alignment: alignment,
-                        charClass: charClass,
+                        Class: selectedClass,
                         skillBonuses: skillBonuses,
                         features: features,
                         traits: traits,

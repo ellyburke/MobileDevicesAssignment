@@ -21,7 +21,7 @@ class Character {
   String? appearance;
   String size;
 
-  Map<String, int>? charClass;
+  String? Class;
   Map<String, bool> skillBonuses;
   Map<String, int> inventory;
   Map<String, int> spellCastingAbility;
@@ -52,7 +52,7 @@ class Character {
     required this.passivePerception,
     required this.background,
     required this.alignment,
-    required this.charClass,
+    required this.Class,
     required this.skillBonuses,
     required this.features,
     required this.traits,
@@ -88,11 +88,11 @@ class Character {
       'speed': speed,
       'passive_perception': passivePerception,
       'size': size,
-      'char_class': jsonEncode(charClass),
+      'Class': Class,
       'skills': jsonEncode(skillBonuses),
       'features': jsonEncode(features),
-      'traits': jsonEncode(traits),
-      'equipment': jsonEncode(equipment),
+      'traits': jsonEncode(traits ?? <String>[]),
+      'equipment': jsonEncode(equipment ?? <String>[]),
       'inventory': jsonEncode(inventory),
       'proficiencies': proficiencies,
       'languages': jsonEncode(languages),
@@ -123,26 +123,91 @@ class Character {
       speed: map['speed'] ?? 30,
       passivePerception: map['passive_perception'] ?? 10,
       size: map['size'] ?? '',
-      charClass: _decodeMap(map['char_class']),
-      skillBonuses: _decodeBoolMap(map['skillBonuses']),
+      Class: map['Class'] ?? '',
+      skillBonuses: _decodeBoolMap(map['skills']),
       features: _decodeList(map['features']),
       traits: _decodeList(map['traits']),
       proficiencies: map['proficiencies'] ?? 0,
       languages: _decodeList(map['languages']),
-      inventory: _decodeMap(map['inventory']),
+      inventory: _decodeIntMap(map['inventory']),
       equipment: _decodeList(map['equipment']),
       spells: _decodeList(map['spells']),
-      spellCastingAbility: _decodeMap(map['spell_casting_ability']),
-      spellSlots: _decodeMap(map['spell_slots']),
+      spellCastingAbility: _decodeIntMap(map['spell_casting_ability']),
+      spellSlots: _decodeIntMap(map['spell_slots']),
+    );
+  }
+  static List<String> _decodeList(dynamic data) {
+    if (data == null) return <String>[];
+
+    // If it's already a List from sqflite
+    if (data is List) {
+      return List<String>.from(data.map((e) => e.toString()));
+    }
+
+    if (data is! String) return <String>[];
+
+    if (data.trim().isEmpty || data.trim() == 'null') {
+      return <String>[];
+    }
+
+    final decoded = jsonDecode(data);
+
+    if (decoded == null) return <String>[];
+
+    if (decoded is List) {
+      return List<String>.from(decoded.map((e) => e.toString()));
+    }
+
+    return <String>[];
+  }
+
+  static Map<String, int> _decodeIntMap(dynamic data) {
+    if (data == null) return <String, int>{};
+
+    if (data is Map) {
+      return Map<String, int>.from(
+        data.map((key, value) => MapEntry(key.toString(), (value ?? 0) as int)),
+      );
+    }
+
+    if (data is! String) return <String, int>{};
+
+    if (data.trim().isEmpty || data.trim() == 'null') {
+      return <String, int>{};
+    }
+
+    final decoded = jsonDecode(data);
+
+    if (decoded == null || decoded is! Map) return <String, int>{};
+
+    return decoded.map<String, int>(
+      (key, value) => MapEntry(key.toString(), (value ?? 0) as int),
     );
   }
 
-  static Map<String, int> _decodeMap(dynamic data) =>
-      Map<String, int>.from(jsonDecode(data ?? '{}'));
+  static Map<String, bool> _decodeBoolMap(dynamic data) {
+    if (data == null) return <String, bool>{};
 
-  static Map<String, bool> _decodeBoolMap(dynamic data) =>
-      Map<String, bool>.from(jsonDecode(data ?? '{}'));
+    if (data is Map) {
+      return Map<String, bool>.from(
+        data.map(
+          (key, value) => MapEntry(key.toString(), (value ?? false) as bool),
+        ),
+      );
+    }
 
-  static List<String> _decodeList(dynamic data) =>
-      List<String>.from(jsonDecode(data ?? '[]'));
+    if (data is! String) return <String, bool>{};
+
+    if (data.trim().isEmpty || data.trim() == 'null') {
+      return <String, bool>{};
+    }
+
+    final decoded = jsonDecode(data);
+
+    if (decoded == null || decoded is! Map) return <String, bool>{};
+
+    return decoded.map<String, bool>(
+      (key, value) => MapEntry(key.toString(), (value ?? false) as bool),
+    );
+  }
 }

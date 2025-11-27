@@ -43,7 +43,7 @@ class CharacterDatabase {
       speed INTEGER,
       passive_perception INTEGER,
       size TEXT,
-      char_class TEXT,
+      Class TEXT,
       skills TEXT,
       features TEXT,
       traits TEXT,
