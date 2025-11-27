@@ -25,6 +25,7 @@ class CharacterDatabase {
     await db.execute('''
     CREATE TABLE characters (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT,
       name TEXT,
       race TEXT,
       background TEXT,
@@ -53,7 +54,8 @@ class CharacterDatabase {
       languages TEXT,
       spells TEXT,
       spell_casting_ability TEXT,
-      spell_slots TEXT
+      spell_slots TEXT,
+      FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
     )
     ''');
   }
@@ -67,6 +69,16 @@ class CharacterDatabase {
     final db = await instance.database;
     final result = await db.query('characters');
     return result.map((map) => Character.fromMap(map)).toList();
+  }
+
+  Future<List<Character>> getAllCharactersByUsername(String username) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'characters',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+    return result.map((json) => Character.fromMap(json)).toList();
   }
 
   Future<int> update(Character character) async {
