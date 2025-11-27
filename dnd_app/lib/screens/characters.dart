@@ -1,5 +1,6 @@
 // Characters Screen
 
+import 'package:dnd_app/screens/singleCharacter.dart';
 import 'package:flutter/material.dart';
 import 'package:dnd_app/screens/newcharacterform.dart';
 
@@ -8,6 +9,8 @@ import 'package:dnd_app/character_databases.dart';
 
 // Model imports
 import 'package:dnd_app/backEnd.dart';
+
+import '../main.dart';
 
 class CharacterPage extends StatefulWidget {
   const CharacterPage({super.key});
@@ -34,23 +37,31 @@ class _CharacterPageState extends State<CharacterPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MyApp(),
+                ), //This needs to be HomePage(username: username)
+              );
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
           actions: [
             TextButton(
               onPressed: () async {
-                // async
-                null;
-                // // Navigate to new character form
-                await Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => NewCharacterForm()),
                 );
 
-                // // Add character to the database if not null
-                setState(() async {
-                  final refreshedList = CharacterDatabase.instance
-                      .readAllCharacters();
-                  characterList = refreshedList;
-                });
+                if (result == true || result == null) {
+                  setState(() {
+                    characterList = CharacterDatabase.instance
+                        .readAllCharacters();
+                  });
+                }
               },
               child: Row(
                 children: [
@@ -114,7 +125,6 @@ class _CharacterPageState extends State<CharacterPage> {
             FutureBuilder(
               future: characterList,
               builder: (context, snapshot) {
-                print(characterList);
                 // While waiting for connection
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -122,8 +132,7 @@ class _CharacterPageState extends State<CharacterPage> {
 
                 // If error
                 if (snapshot.hasError) {
-                  print(snapshot.error);
-                  return Center(child: Text("Error has occured"));
+                  return Center(child: Text("Error has occurred"));
                 }
 
                 // If there are no characters in the database, return
@@ -132,49 +141,48 @@ class _CharacterPageState extends State<CharacterPage> {
                 }
                 // To make the data a list for itemCount
                 final characters = snapshot.data!;
+
                 return ListView.builder(
                   itemCount: characters.length,
                   itemBuilder: (context, index) {
-                    // Display each character one at a time
                     final character = characters[index];
+
                     return Card(
-                      margin: EdgeInsets.only(left: 20, right: 20, top: 20),
-                      color: Colors.grey,
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  character.name as String,
-                                  style: TextStyle(fontSize: 25),
-                                ),
-                              ],
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: ListTile(
+                        title: Text(character.name ?? 'Unnamed'),
+                        subtitle: Text(
+                          'Level ${character.level ?? 1} ${character.race ?? ''}',
+                        ),
+                        onTap: () {
+                          // Open that specific character
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  singleCharacter(character: character),
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Level ${character.level.toString()}\t|\t${character.race}',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  '${character.hp.toString()} HP\t|\t'
-                                  '${character.speed} SPD\t|\t'
-                                  '${character.initiative} INIT\t|\t'
-                                  '${character.wisdom} WDM',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                          );
+                        },
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            // Make sure the character has an id before deleting
+                            if (character.id != null) {
+                              await CharacterDatabase.instance.delete(
+                                character.id!,
+                              );
+
+                              // 🔄 Refresh the list by creating a new future
+                              setState(() {
+                                characterList = CharacterDatabase.instance
+                                    .readAllCharacters();
+                              });
+                            }
+                          },
                         ),
                       ),
                     );
@@ -187,7 +195,7 @@ class _CharacterPageState extends State<CharacterPage> {
           ],
         ),
 
-        // Impliment this in a seperate file so you can only switch between bodies
+        // Implement this in a separate file so you can only switch between bodies
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           items: const [
