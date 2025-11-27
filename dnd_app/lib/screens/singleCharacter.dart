@@ -115,14 +115,20 @@ class MyApp extends StatelessWidget {
 */
 
 class singleCharacter extends StatefulWidget {
+  final String username;
   final Character character;
-  const singleCharacter({super.key, required this.character});
+  const singleCharacter({
+    super.key,
+    required this.character,
+    required this.username,
+  });
 
   @override
   State<singleCharacter> createState() => singleCharacterState();
 }
 
 class singleCharacterState extends State<singleCharacter> {
+  late final u = widget.username;
   Future<void> _showSpellInfo(String index) async {
     try {
       final response = await http.get(
@@ -215,7 +221,9 @@ class singleCharacterState extends State<singleCharacter> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CharacterPage()),
+              MaterialPageRoute(
+                builder: (context) => CharacterPage(thisUsername: u),
+              ),
             );
           },
           icon: Icon(Icons.arrow_back),

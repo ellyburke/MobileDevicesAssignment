@@ -5,13 +5,13 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
-import 'login.dart'; 
+import 'login.dart';
 
 void main() async {
   // Initialize sqflite for different platforms if needed
-   //sqfliteFfiInit();
+  //sqfliteFfiInit();
   // databaseFactory = databaseFactoryFfi;
-  
+
   runApp(MyApp());
 }
 
@@ -59,12 +59,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late final u = widget.username;
   // Pages list for navigation
-  List<Map<String, dynamic>> pages = [
-    {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
+  late List<Map<String, dynamic>> pages = [
+    {
+      'title': 'Characters',
+      'icon': Icons.add,
+      'screen': CharacterPage(thisUsername: u),
+    },
     {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
     {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage()},
-    {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage()},
+    {
+      'title': 'Sessions',
+      'icon': Icons.calendar_month,
+      'screen': SessionsPage(),
+    },
   ];
 
   @override
@@ -100,25 +109,16 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
-            Text(
-              "Welcome, ${widget.username}",
-              style: TextStyle(fontSize: 30),
-            ),
+            Text("Welcome, ${widget.username}", style: TextStyle(fontSize: 30)),
             SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildMenuButton(0),
-                _buildMenuButton(1),
-              ],
+              children: [_buildMenuButton(0), _buildMenuButton(1)],
             ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildMenuButton(2),
-                _buildMenuButton(3),
-              ],
+              children: [_buildMenuButton(2), _buildMenuButton(3)],
             ),
             SizedBox(height: 40),
             Align(
@@ -152,9 +152,7 @@ class _HomePageState extends State<HomePage> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         minimumSize: Size(170, 130),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
       onPressed: () {
         if (pages[index]['screen'] != null) {
@@ -166,17 +164,10 @@ class _HomePageState extends State<HomePage> {
       },
       child: Column(
         children: [
-          Icon(
-            pages[index]['icon'],
-            size: 35,
-            color: Color(0xFF6B4E24),
-          ),
+          Icon(pages[index]['icon'], size: 35, color: Color(0xFF6B4E24)),
           Text(
             pages[index]['title'],
-            style: TextStyle(
-              fontSize: 20,
-              color: Color(0xFF6B4E24),
-            ),
+            style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),
           ),
         ],
       ),

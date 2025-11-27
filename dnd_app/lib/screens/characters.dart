@@ -6,6 +6,7 @@ import 'package:dnd_app/screens/newcharacterform.dart';
 
 //  Database imports
 import 'package:dnd_app/character_databases.dart';
+import 'package:dnd_app/userDatabase.dart';
 
 // Model imports
 import 'package:dnd_app/backEnd.dart';
@@ -13,13 +14,15 @@ import 'package:dnd_app/backEnd.dart';
 import '../main.dart';
 
 class CharacterPage extends StatefulWidget {
-  const CharacterPage({super.key});
+  final String thisUsername;
+  const CharacterPage({super.key, required this.thisUsername});
 
   @override
   State<CharacterPage> createState() => _CharacterPageState();
 }
 
 class _CharacterPageState extends State<CharacterPage> {
+  late final u = widget.thisUsername;
   // Get the list of characters from the database
   late Future<List<Character>> characterList = CharacterDatabase.instance
       .readAllCharacters();
@@ -42,7 +45,7 @@ class _CharacterPageState extends State<CharacterPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MyApp(),
+                  builder: (context) => HomePage(username: u),
                 ), //This needs to be HomePage(username: username)
               );
             },
@@ -162,8 +165,10 @@ class _CharacterPageState extends State<CharacterPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  singleCharacter(character: character),
+                              builder: (_) => singleCharacter(
+                                character: character,
+                                username: u,
+                              ),
                             ),
                           );
                         },
