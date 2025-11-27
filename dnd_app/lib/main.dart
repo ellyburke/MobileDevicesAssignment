@@ -7,20 +7,19 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
-import 'login.dart';
-import 'userDatabase.dart';
+import 'login.dart'; // This now imports registration.dart indirectly
 
 void main() async {
-  //databaseFactory = databaseFactoryFfi;
-  runApp(MyApp());
-
+  // Initialize sqflite for different platforms if needed
+   //sqfliteFfiInit();
+   //databaseFactory = databaseFactoryFfi;
+  
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -47,15 +46,15 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black,
         ),
       ),
-      home: const LoginPage(), // Changed from HomePage to LoginPage
+      home: const LoginPage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  final String username; // Add username parameter
+  final String username;
 
-  const HomePage({super.key, required this.username}); // Update constructor
+  const HomePage({super.key, required this.username});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -65,9 +64,9 @@ class _HomePageState extends State<HomePage> {
   // Pages list for navigation
   List<Map<String, dynamic>> pages = [
     {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
-    {'title': 'Compendium', 'icon': Icons.shield},
+    {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
     {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage()},
-    {'title': 'Sessions', 'icon': Icons.calendar_month},
+    {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage()},
   ];
 
   @override
@@ -77,7 +76,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Building the homepage
     return Scaffold(
       appBar: AppBar(
         title: Text("D&D Companion App"),
@@ -85,11 +83,11 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             onPressed: null,
             icon: Icon(Icons.account_circle),
-            tooltip: widget.username, // Show username as tooltip
+            tooltip: widget.username,
           ),
           IconButton(
             onPressed: () {
-              // Add logout functionality here
+              // Logout functionality
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -107,138 +105,21 @@ class _HomePageState extends State<HomePage> {
             Text(
               "Welcome, ${widget.username}",
               style: TextStyle(fontSize: 30),
-            ), // Use the username
-            // Idea: have the title change greetings based on the time of day
+            ),
             SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CharacterPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[0]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[0]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Compendium()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[1]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[1]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildMenuButton(0),
+                _buildMenuButton(1),
               ],
             ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => FriendsPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[2]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[2]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SessionsPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[3]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[3]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildMenuButton(2),
+                _buildMenuButton(3),
               ],
             ),
             SizedBox(height: 40),
@@ -252,38 +133,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // A Container that holds any notifications the user has missed
-            // Container(
-            //   padding: EdgeInsets.only(left: 20, right: 20, top: 10),
-            //   height: 300,
-            //   child: ListView.builder(
-            //     itemCount: 10,
-            //     itemBuilder: (context, index){
-            //       return Card(
-            //         shape: RoundedRectangleBorder(
-            //           borderRadius: BorderRadius.zero,
-            //         ),
-            //         child: Row(
-            //           children: [
-            //             Container(
-            //               width: 10,
-            //               height: 40,
-            //               color: Colors.lightBlue,
-            //             ),
-            //             Column(
-            //               children: [
-            //                 Text("New Charcter added!"),
-            //                 Text("jim239 created a new character!")
-            //               ],
-            //             )
-            //
-            //           ],
-            //
-            //         ),
-            //       );
-            //     }
-            //   ),
-            // ),
             SizedBox(height: 40),
             Align(
               alignment: Alignment.centerLeft,
@@ -297,6 +146,41 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMenuButton(int index) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(170, 130),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+      ),
+      onPressed: () {
+        if (pages[index]['screen'] != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => pages[index]['screen']),
+          );
+        }
+      },
+      child: Column(
+        children: [
+          Icon(
+            pages[index]['icon'],
+            size: 35,
+            color: Color(0xFF6B4E24),
+          ),
+          Text(
+            pages[index]['title'],
+            style: TextStyle(
+              fontSize: 20,
+              color: Color(0xFF6B4E24),
+            ),
+          ),
+        ],
       ),
     );
   }
