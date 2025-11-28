@@ -2,6 +2,7 @@ import 'dart:convert';
 
 class Character {
   int? id;
+  String username;
   int? hp;
   int? strength;
   int? dexterity;
@@ -36,6 +37,7 @@ class Character {
 
   Character({
     this.id,
+    required this.username,
     required this.hp,
     required this.strength,
     required this.dexterity,
@@ -70,6 +72,7 @@ class Character {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'username': username,
       'name': name,
       'race': race,
       'background': background,
@@ -105,6 +108,7 @@ class Character {
   factory Character.fromMap(Map<String, dynamic> map) {
     return Character(
       id: map['id'] as int?,
+      username: map['username'] ?? '',
       name: map['name'] ?? '',
       race: map['race'] ?? '',
       background: map['background'] ?? '',

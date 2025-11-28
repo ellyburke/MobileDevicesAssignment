@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 
 class CalendarEvent {
   int? id;
+  String? username;
 
   /// Store only the date portion (year-month-day)
   DateTime date;
@@ -77,9 +78,11 @@ class CalendarDatabase {
     await db.execute('''
       CREATE TABLE calendar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
         date TEXT NOT NULL,                  -- 'YYYY-MM-DD'
         time TEXT NOT NULL,                  -- 'HH:MM' 24h
         attendees TEXT NOT NULL DEFAULT '[]' -- JSON array of strings
+        FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
       );
     ''');
 
@@ -99,6 +102,16 @@ class CalendarDatabase {
   Future<List<CalendarEvent>> getAllEvents() async {
     final db = await instance.database;
     final result = await db.query('calendar', orderBy: 'date ASC, time ASC');
+    return result.map((json) => CalendarEvent.fromMap(json)).toList();
+  }
+
+  Future<List<CalendarEvent>> getEventsByUserName(String username) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'calendar',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
     return result.map((json) => CalendarEvent.fromMap(json)).toList();
   }
 

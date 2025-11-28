@@ -6,13 +6,13 @@ import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
 import 'package:dnd_app/userDatabase.dart';
-import 'login.dart'; 
+import 'login.dart';
 
 void main() async {
   // Initialize sqflite for different platforms if needed
-   //sqfliteFfiInit();
+  //sqfliteFfiInit();
   // databaseFactory = databaseFactoryFfi;
-  
+
   runApp(MyApp());
 }
 
@@ -65,6 +65,7 @@ class _HomePageState extends State<HomePage> {
 
   // TODO: Get the user's upcoming sessions
 
+  late final u = widget.username;
   // Pages list for navigation
   late List<Map<String, dynamic>> pages;
 
@@ -123,18 +124,12 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildMenuButton(0),
-                _buildMenuButton(1),
-              ],
+              children: [_buildMenuButton(0), _buildMenuButton(1)],
             ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildMenuButton(2),
-                _buildMenuButton(3),
-              ],
+              children: [_buildMenuButton(2), _buildMenuButton(3)],
             ),
             SizedBox(height: 40),
             Align(
@@ -168,9 +163,7 @@ class _HomePageState extends State<HomePage> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         minimumSize: Size(170, 130),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
       onPressed: () {
         if (pages[index]['screen'] != null) {
@@ -182,17 +175,10 @@ class _HomePageState extends State<HomePage> {
       },
       child: Column(
         children: [
-          Icon(
-            pages[index]['icon'],
-            size: 35,
-            color: Color(0xFF6B4E24),
-          ),
+          Icon(pages[index]['icon'], size: 35, color: Color(0xFF6B4E24)),
           Text(
             pages[index]['title'],
-            style: TextStyle(
-              fontSize: 20,
-              color: Color(0xFF6B4E24),
-            ),
+            style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),
           ),
         ],
       ),
