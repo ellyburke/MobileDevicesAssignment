@@ -5,6 +5,7 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
+import 'package:dnd_app/userDatabase.dart';
 import 'login.dart'; 
 
 void main() async {
@@ -59,17 +60,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Store the user for constant use across the app
+  User? user;
+
+  // TODO: Get the user's upcoming sessions
+
   // Pages list for navigation
-  List<Map<String, dynamic>> pages = [
-    {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
-    {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
-    {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage()},
-    {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage()},
-  ];
+  late List<Map<String, dynamic>> pages;
+
+  Future<void> loadUser() async{
+    user = await UserDatabase.instance.getUserByUsername(widget.username);
+    pages = [
+      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
+      {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
+      {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage(userId: user?.id,)},
+      {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage()},
+    ];
+
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
+    loadUser();
   }
 
   @override
@@ -100,9 +114,11 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
+            // Future builder to get snapshot of user data
             Text(
-              "Welcome, ${widget.username}",
-              style: TextStyle(fontSize: 30),
+                style: TextStyle(fontSize: 30),
+                "Welcome, ${user?.displayName ?? user?.firstName}"
+
             ),
             SizedBox(height: 40),
             Row(

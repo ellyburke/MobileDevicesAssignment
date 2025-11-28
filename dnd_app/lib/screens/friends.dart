@@ -5,7 +5,9 @@ import 'dart:collection';
 import 'package:fluttericon/elusive_icons.dart';
 
 class FriendsPage extends StatefulWidget{
-  const FriendsPage({super.key});
+  final int? userId;
+
+  const FriendsPage({super.key, required this.userId});
   
   @override
   State<FriendsPage> createState() => _FriendsPageState();
@@ -13,7 +15,7 @@ class FriendsPage extends StatefulWidget{
 
 class _FriendsPageState extends State<FriendsPage>{
   //Store the current logged in user id
-  final int userId = 12;
+  // final int userId = 12;
 
   // Get the list of friends in the database
   late Future<List<User>> friendsData;
@@ -34,7 +36,7 @@ class _FriendsPageState extends State<FriendsPage>{
   TextEditingController searchController = TextEditingController();
 
   Future<void> refreshData() async {
-    final refreshedData = await UserDatabase.instance.getFriends(userId);
+    final refreshedData = await UserDatabase.instance.getFriends(widget.userId!);
 
     setState(() {
       friendsList = refreshedData;
@@ -96,9 +98,31 @@ class _FriendsPageState extends State<FriendsPage>{
   }
 
   // Add a user for testing
-  void addFriend(int friendId){
-    UserDatabase.instance.addFriend(userId, friendId);
-    refreshData();
+  void addFriend() async {
+    final result = await showAddFriendDialog(context);
+    if (result != null){
+      // Check if they are already friends
+      final alreadyFriends = friendsList.any((u) => u.id == result.id);
+
+      if (!alreadyFriends){
+        UserDatabase.instance.addFriend(widget.userId!, result.id!);
+        refreshData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("New friend added successfully!"),
+          ),
+        );
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("This person is already your friend"),
+          ),
+        );
+      }
+    }
+    setState(() {});
+
   }
 
   void removeFriend(int id, int friendId){
@@ -117,7 +141,8 @@ class _FriendsPageState extends State<FriendsPage>{
 
   @override
   void initState() {
-    friendsData = UserDatabase.instance.getFriends(userId);
+    friendsData = UserDatabase.instance.getFriends(widget.userId!);
+    printUsers();
   }
   @override
   Widget build(BuildContext context) {
@@ -158,28 +183,7 @@ class _FriendsPageState extends State<FriendsPage>{
             actions: [
               ElevatedButton(
                 onPressed: () async {
-                  final result = await showAddFriendDialog(context);
-                  if (result != null){
-                    // Check if they are already friends
-                    final alreadyFriends = friendsList.any((u) => u.id == result.id);
-
-                    if (alreadyFriends){
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("This person is already your friend"),
-                        ),
-                      );
-                    }
-                    else{
-                      addFriend(result.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("New friend added successfully!"),
-                        ),
-                      );
-                    }
-                  }
-
+                  addFriend();
                 },
 
                 child: Row(
@@ -221,7 +225,9 @@ class _FriendsPageState extends State<FriendsPage>{
                       children: [
                         Text("You have no friends :("),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            addFriend();
+                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
