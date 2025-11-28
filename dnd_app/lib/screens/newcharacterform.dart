@@ -98,9 +98,11 @@ String sizeInfo = '';
 String abilityBonusText = '';
 String languageText = '';
 String traitText = '';
+String username = '';
 
 class NewCharacterForm extends StatefulWidget {
-  const NewCharacterForm({super.key});
+  final String passedusername;
+  const NewCharacterForm({super.key, required this.passedusername});
 
   @override
   State<NewCharacterForm> createState() => _NewCharacterFormState();
@@ -156,6 +158,7 @@ class _NewCharacterFormState extends State<NewCharacterForm> {
                   if (_formKey.currentState!.validate()) {
                     //setState(() async {
                     // STEP 2: return character object
+                    username = widget.passedusername;
                     name = _nameController.text;
                     final result = await Navigator.push(
                       context,
@@ -1973,6 +1976,7 @@ class backgroundState extends State<backgroundPage> {
                               ((constitution! - 10) ~/ 2)) +
                           (hitDie + ((constitution! - 10) ~/ 2));
                       Character character = Character(
+                        username: username,
                         hp: hp,
                         strength: strength,
                         dexterity: dexterity,
