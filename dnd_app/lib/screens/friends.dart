@@ -15,7 +15,6 @@ class FriendsPage extends StatefulWidget{
 
 class _FriendsPageState extends State<FriendsPage>{
   //Store the current logged in user id
-  // final int userId = 12;
 
   // Get the list of friends in the database
   late Future<List<User>> friendsData;
@@ -35,10 +34,9 @@ class _FriendsPageState extends State<FriendsPage>{
   // Text controller for search bar
   TextEditingController searchController = TextEditingController();
 
-  Future<void> refreshData() async {
-    final refreshedData = await UserDatabase.instance.getFriends(widget.userId!);
-
-    setState(() {
+  void refreshData() {
+    setState(() async {
+      final refreshedData = await UserDatabase.instance.getFriends(widget.userId!);
       friendsList = refreshedData;
       filteredMap = mapData(friendsList);
       filteredList = buildFlattenedList(filteredMap);
@@ -106,6 +104,7 @@ class _FriendsPageState extends State<FriendsPage>{
 
       if (!alreadyFriends){
         UserDatabase.instance.addFriend(widget.userId!, result.id!);
+        setState(() {});
         refreshData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -125,8 +124,14 @@ class _FriendsPageState extends State<FriendsPage>{
 
   }
 
-  void removeFriend(int id, int friendId){
-    UserDatabase.instance.removeFriend(id, friendId);
+  void removeFriend(int friendId){
+    UserDatabase.instance.removeFriend(widget.userId!, friendId);
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Friend is removed"),
+      ),
+    );
     refreshData();
   }
 
@@ -299,6 +304,12 @@ class _FriendsPageState extends State<FriendsPage>{
                                   style: const TextStyle(fontSize: 15),
                                 ),
                             ],
+                          ),
+                          trailing: IconButton(
+                            onPressed: (){
+                              removeFriend(item.id);
+                            },
+                            icon: Icon(Icons.delete),
                           ),
                         ),
                       );

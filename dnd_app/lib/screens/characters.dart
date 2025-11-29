@@ -56,7 +56,7 @@ class _CharacterPageState extends State<CharacterPage> {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => NewCharacterForm()),
+                  MaterialPageRoute(builder: (context) => NewCharacterForm(passedusername: u)),
                 );
 
                 if (result == true || result == null) {
@@ -196,28 +196,7 @@ class _CharacterPageState extends State<CharacterPage> {
               },
             ),
 
-            Center(child: Text("You have no friends yet:(")),
-          ],
-        ),
-
-        // Implement this in a separate file so you can only switch between bodies
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            // Character Tab
-            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Characters'),
-            // Game info tab
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shield),
-              label: 'Game Info',
-            ),
-            // Friends tab
-            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Friends'),
-            // Sessions tab
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month),
-              label: 'Sessions',
-            ),
+            Center(child: Text("Your friends have no characters yet:(")),
           ],
         ),
       ),

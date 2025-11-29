@@ -17,6 +17,7 @@ class CalendarEvent {
 
   CalendarEvent({
     this.id,
+    required this.username,
     required this.date,
     required this.time,
     required this.attendees,
@@ -32,6 +33,7 @@ class CalendarEvent {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'username': username,
       'date': _yyyyMmDd(date), // 'YYYY-MM-DD'
       'time': time, // 'HH:MM' 24h string
       'attendees': jsonEncode(attendees),
@@ -50,6 +52,7 @@ class CalendarEvent {
 
     return CalendarEvent(
       id: (map['id'] as num?)?.toInt(),
+      username: map['username'] ?? '',
       date: parsedDate,
       time: map['time'] as String, // 'HH:MM'
       attendees: people,
@@ -81,7 +84,7 @@ class CalendarDatabase {
         username TEXT NOT NULL,
         date TEXT NOT NULL,                  -- 'YYYY-MM-DD'
         time TEXT NOT NULL,                  -- 'HH:MM' 24h
-        attendees TEXT NOT NULL DEFAULT '[]' -- JSON array of strings
+        attendees TEXT NOT NULL DEFAULT '[]', -- JSON array of strings
         FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
       );
     ''');

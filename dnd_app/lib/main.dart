@@ -72,10 +72,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadUser() async{
     user = await UserDatabase.instance.getUserByUsername(widget.username);
     pages = [
-      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
+      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage(thisUsername: u)},
       {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
       {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage(userId: user?.id,)},
-      {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage()},
+      {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage(username: u,)},
     ];
 
     setState(() {});
@@ -132,27 +132,16 @@ class _HomePageState extends State<HomePage> {
               children: [_buildMenuButton(2), _buildMenuButton(3)],
             ),
             SizedBox(height: 40),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  "Recent Notifications",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
-            SizedBox(height: 40),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  "Upcoming Sessions",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: Padding(
+            //     padding: EdgeInsets.only(left: 10),
+            //     child: Text(
+            //       "Upcoming Sessions",
+            //       style: TextStyle(fontSize: 30),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
