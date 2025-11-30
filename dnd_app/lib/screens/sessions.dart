@@ -49,9 +49,9 @@ class _SessionsPageState extends State<SessionsPage> {
 
   // Split sessions (passed and upcoming)
   List<CalendarEvent> eventsList = [];
-  List<CalendarEvent> pastEvents = [];
-  List<CalendarEvent> upcomingEvents = [];
 
+  // Save another instance to handle the list flattening
+  List<dynamic> flattenedList = [];
 
   late Future<void> _initialization;
 
@@ -59,9 +59,7 @@ class _SessionsPageState extends State<SessionsPage> {
   void initState() {
     super.initState();
     loadEvents();
-    // Separate events
-    separateEvents();
-
+    flattenedList = flattenEventsList();
     _initialization = initializeNotifications();
   }
 
@@ -207,24 +205,34 @@ class _SessionsPageState extends State<SessionsPage> {
 
     setState(() {
       eventsList = list;
-      separateEvents();
+      flattenedList = flattenEventsList();
     });
   }
 
-  void separateEvents(){
-    // Separate events from past and upcoming
-    for (CalendarEvent event in eventsList){
-      // If event is not already in the lists
-      if (!pastEvents.contains(event) || !upcomingEvents.contains(event)){
-        // Check the date to separate events
-        if (daysUntil(event) < 0){
-          pastEvents.add(event);
-        }
-        else{
-          upcomingEvents.add(event);
-        }
+  List<dynamic> flattenEventsList(){
+    // Function to flatten list to get the upcoming and past sessions headers
+
+    // Map first
+    Map<String, List<CalendarEvent>> map = {'Upcoming Sessions':[], 'Past Sessions':[]};
+    for (CalendarEvent e in eventsList){
+      if (daysUntil(e) < 0){
+        map['Past Sessions']?.add(e);
+      }
+      else{
+        map['Upcoming Sessions']?.add(e);
       }
     }
+
+    List<dynamic> list = []; // First add the Upcoming header
+
+    final keys = map.keys.toList();
+
+    for (String key in keys) {
+      list.add(key);   // Section header
+      list.addAll(map[key]!);  // Section items
+    }
+
+    return list;
   }
 
   // Adds new session
@@ -303,7 +311,6 @@ class _SessionsPageState extends State<SessionsPage> {
                     // Show snackbars depending on status codes
                     if (event != null) {
                       addSession(event);
-
                       setState(() {
                         // Refresh list
                         loadEvents();
@@ -338,57 +345,88 @@ class _SessionsPageState extends State<SessionsPage> {
                 ),
               ),
               SizedBox(height: 10,),
-              Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ======================
-                        // UPCOMING SESSIONS LIST
-                        // ======================
-                        Padding(
-                          padding: EdgeInsets.only(left: 10),
-                          child: Text(
-                            "Upcoming Sessions",
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (upcomingEvents.isEmpty)
-                          Center(
-                            child: Text("No upcoming sessions scheduled"),
-                          )
-                        else
-                          ...upcomingEvents.map(_buildEventCard).toList(),
-
-                        const SizedBox(height: 30),
-
-                        // =
-                        if (pastEvents.isNotEmpty)
-                          Padding(
-                            padding: EdgeInsets.only(left: 10),
-                            child: Text(
-                              "Past Sessions",
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 10),
-
-                        // ======================
-                        // PAST SESSIONS LIST
-                        // ======================
-                        ...pastEvents.map(_buildEventCard).toList(),
-                      ],
-                    ),
-                  ),
-              )
+              if (eventsList.isEmpty)
+                Center(
+                  child: Text("No Sessions Scheduled"),
+                )
+              else
+                Expanded(
+                    child: ListView.builder(
+                        itemCount: flattenedList.length,
+                        itemBuilder: (context, index){
+                          final item = flattenedList[index];
+                          if (item is String){
+                            return Padding(
+                                padding: EdgeInsets.only(left: 12),
+                                child: Text(
+                                  item,
+                                  style: TextStyle(
+                                      fontSize: 35,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                            );
+                          }
+                          else{
+                            return _buildEventCard(item);
+                          }
+                        }
+                    )
+                )
+              
+              // Expanded(
+              //     child: SingleChildScrollView(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           // ======================
+              //           // UPCOMING SESSIONS LIST
+              //           // ======================
+              //           Padding(
+              //             padding: EdgeInsets.only(left: 10),
+              //             child: Text(
+              //               "Upcoming Sessions",
+              //               style: TextStyle(
+              //                 fontSize: 30,
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //           ),
+              //           const SizedBox(height: 10),
+              //           if (upcomingEvents.isEmpty)
+              //             Center(
+              //               child: Text("No upcoming sessions scheduled"),
+              //             )
+              //           else
+              //             ...upcomingEvents.map(_buildEventCard).toList(),
+              //
+              //           const SizedBox(height: 30),
+              //
+              //           // ======================
+              //           // PAST SESSIONS LIST
+              //           // ======================
+              //           if (pastEvents.isNotEmpty)
+              //             Padding(
+              //               padding: EdgeInsets.only(left: 10),
+              //               child: Text(
+              //                 "Past Sessions",
+              //                 style: TextStyle(
+              //                   fontSize: 30,
+              //                   fontWeight: FontWeight.bold,
+              //                 ),
+              //               ),
+              //             ),
+              //
+              //           const SizedBox(height: 10),
+              //
+              //           // ======================
+              //           // PAST SESSIONS LIST
+              //           // ======================
+              //           ...pastEvents.map(_buildEventCard).toList(),
+              //         ],
+              //       ),
+              //     ),
+              // )
         ]
           )
         );

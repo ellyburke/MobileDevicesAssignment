@@ -114,6 +114,7 @@ class CalendarDatabase {
       'calendar',
       where: 'username = ?',
       whereArgs: [username],
+      orderBy: 'date ASC, time ASC'
     );
     return result.map((json) => CalendarEvent.fromMap(json)).toList();
   }
