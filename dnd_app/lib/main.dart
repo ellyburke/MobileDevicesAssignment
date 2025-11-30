@@ -1,3 +1,4 @@
+import 'package:dnd_app/registration.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
@@ -72,7 +73,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadUser() async{
     user = await UserDatabase.instance.getUserByUsername(widget.username);
     pages = [
-      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage(thisUsername: u)},
+      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage(thisUsername: u, userId: user?.id)},
       {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
       {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage(userId: user?.id,)},
       {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage(username: u,)},

@@ -642,7 +642,12 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
   }
 
   Future<void> checkForAttendee(String attendeeValue) async {
+    // Function that checks to see if a user is in the database
+
     helperText = null;
+    notValid = false;
+    valid = false;
+
     // Access database to see if user is in there
     final result = await UserDatabase.instance.getUserByUsername(attendeeValue);
 

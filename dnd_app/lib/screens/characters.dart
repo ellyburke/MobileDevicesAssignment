@@ -15,24 +15,54 @@ import '../main.dart';
 
 class CharacterPage extends StatefulWidget {
   final String thisUsername;
-  const CharacterPage({super.key, required this.thisUsername});
+  final int? userId;
+  const CharacterPage({super.key, required this.thisUsername, this.userId});
 
   @override
   State<CharacterPage> createState() => _CharacterPageState();
 }
 
 class _CharacterPageState extends State<CharacterPage> {
+  late final id = widget.userId;
   late final u = widget.thisUsername;
   // Get the list of characters from the database
   late Future<List<Character>> characterList = CharacterDatabase.instance
+      .getAllCharactersByUsername(u);
+
+  // Store a list of friends usernames and all characters
+  late Future<List<Character>> allCharacters = CharacterDatabase.instance
       .readAllCharacters();
+  late Future<List<User>> friends = UserDatabase.instance.getFriends(id!);
+
+  List<Character> friendsCharacters = [];
 
   @override
   void initState() {
     super.initState();
+    loadFriendCharacters();
   }
 
-  // NOTE: For the characters tab, just change the data you are pulling
+  Future<void> getFriendsCharacters() async {
+    // Function that gets all the friend's created characters
+
+    final characters = await allCharacters;
+    final friendUsers = await friends;
+
+    // Get all friends usernames
+    final friendUsernames = friendUsers.map((u) => u.username).toSet();
+
+    // Filter to get characters
+    final list = characters.where((c) {
+      return friendUsernames.contains(c.username);
+    }).toList();
+
+    friendsCharacters = list;
+  }
+
+  void loadFriendCharacters() async {
+    await getFriendsCharacters();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +70,14 @@ class _CharacterPageState extends State<CharacterPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          title: Text("Characters"),
           leading: IconButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => HomePage(username: u),
-                ), //This needs to be HomePage(username: username)
+                ),
               );
             },
             icon: Icon(Icons.arrow_back),
@@ -68,11 +99,11 @@ class _CharacterPageState extends State<CharacterPage> {
               },
               child: Row(
                 children: [
-                  Icon(Icons.add, color: Colors.black),
+                  Icon(Icons.add, color: Colors.white),
                   SizedBox(width: 5),
                   Text(
                     "Add new Character",
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ],
               ),
@@ -125,6 +156,10 @@ class _CharacterPageState extends State<CharacterPage> {
         // ============================
         body: TabBarView(
           children: [
+
+            // =================
+            // FIRST TAB
+            // =================
             FutureBuilder(
               future: characterList,
               builder: (context, snapshot) {
@@ -138,66 +173,88 @@ class _CharacterPageState extends State<CharacterPage> {
                   return Center(child: Text("Error has occurred"));
                 }
 
-                // If there are no characters in the database, return
-                if (!snapshot.hasData) {
-                  return Center(child: Text("No characters in the database:("));
-                }
                 // To make the data a list for itemCount
                 final characters = snapshot.data!;
+
+                // If there are no characters in the database, return
+                if (characters.isEmpty) {
+                  return Center(child: Text("You have no characters yet :("));
+                }
 
                 return ListView.builder(
                   itemCount: characters.length,
                   itemBuilder: (context, index) {
                     final character = characters[index];
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        title: Text(character.name ?? 'Unnamed'),
-                        subtitle: Text(
-                          'Level ${character.level ?? 1} ${character.race ?? ''}',
-                        ),
-                        onTap: () {
-                          // Open that specific character
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => singleCharacter(
-                                character: character,
-                                username: u,
-                              ),
-                            ),
-                          );
-                        },
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            // Make sure the character has an id before deleting
-                            if (character.id != null) {
-                              await CharacterDatabase.instance.delete(
-                                character.id!,
-                              );
-
-                              // 🔄 Refresh the list by creating a new future
-                              setState(() {
-                                characterList = CharacterDatabase.instance
-                                    .readAllCharacters();
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    );
+                    return _buildCharacterCard(character);
                   },
                 );
               },
             ),
 
-            Center(child: Text("Your friends have no characters yet:(")),
+            // ===============
+            // SECOND TAB
+            // ===============
+            if (friendsCharacters.isEmpty)
+              Center(child: Text("Your friends have no characters yet :("))
+
+            else
+              ListView.builder(
+                  itemCount: friendsCharacters.length,
+                  itemBuilder: (context, index) {
+                    final character = friendsCharacters[index];
+
+                    return _buildCharacterCard(character);
+                  }
+              )
+
+
+
+            ,
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCharacterCard(Character character){
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      child: ListTile(
+        title: Text(character.name ?? 'Unnamed'),
+        subtitle: Text(
+          'Level ${character.level ?? 1} ${character.race ?? ''}',
+        ),
+        onTap: () {
+          // Open that specific character
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => singleCharacter(
+                character: character,
+                username: u,
+              ),
+            ),
+          );
+        },
+        trailing: IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () async {
+            // Make sure the character has an id before deleting
+            if (character.id != null) {
+              await CharacterDatabase.instance.delete(
+                character.id!,
+              );
+
+              setState(() {
+                characterList = CharacterDatabase.instance
+                    .getAllCharactersByUsername(u);
+              });
+            }
+          },
         ),
       ),
     );
