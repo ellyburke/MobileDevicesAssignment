@@ -1,14 +1,20 @@
-// import 'dart:async';
-// import 'package:path/path.dart';
-// import 'package:sqflite/sqflite.dart';
-// import 'package:http/http.dart' as http;
+/*
+Contributors: Ayaan Mustafa
+Date: 2025/11/30
+Purpose: Define classes used in the compendium pages
+ */
 
+// Response Class
+// used to represent generic HTTP responses
 class Response {
+  // class fields
   int? count;
   List? results;
 
+  // parameterized constructor
   Response({this.count, this.results});
 
+  // factory constructor to build Response object from HTTP response
   factory Response.fromJson(Map<String, dynamic> json) {
     return switch (json) {
       {"count": int count, "results": List results} => Response(
@@ -22,9 +28,17 @@ class Response {
   }
 }
 
+// Content Class
+// Dummy parent class to allow for polymorphism of certain classes
+// allows for all content types to be treated the same way
+// type checking used to make sure the correct content type is used
 class Content {}
 
+// Race Class
+// Represents one of the playable races in the game (elf, dwarf, etc.)
 class Race extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   int? speed;
   List<dynamic>? abilityBonuses;
@@ -38,6 +52,7 @@ class Race extends Content {
   List<dynamic>? traits;
   List<dynamic>? subraces;
 
+  // parameterized constructor
   Race({
     this.name,
     this.speed,
@@ -53,6 +68,7 @@ class Race extends Content {
     this.subraces,
   });
 
+  // factory constructor to build object from HTTP response
   factory Race.fromJson(Map<String, dynamic> json) {
     return Race(
       name: json["name"],
@@ -71,7 +87,11 @@ class Race extends Content {
   }
 }
 
+// Background Class
+// represents one of the possible background for a player character in the game
 class Background extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   List<dynamic>? startingProficiencies;
   Map<String, dynamic>? languageOptions;
@@ -83,6 +103,7 @@ class Background extends Content {
   Map<String, dynamic>? bonds;
   Map<String, dynamic>? flaws;
 
+  // parameterized constructor
   Background({
     this.name,
     this.startingProficiencies,
@@ -96,6 +117,7 @@ class Background extends Content {
     this.flaws,
   });
 
+  // factory constructor to build object from HTTP response
   factory Background.fromJson(Map<String, dynamic> json) {
     return Background(
       name: json["name"],
@@ -112,7 +134,11 @@ class Background extends Content {
   }
 }
 
-class Class extends Content {
+// PlayerClass class
+// represents a player characters class (fighter, cleric, wizard, etc.)
+class PlayerClass extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   int? hitDie;
   List<dynamic>? proficiencyChoices;
@@ -126,7 +152,8 @@ class Class extends Content {
   List<dynamic>? spellCasting;
   String? spells;
 
-  Class({
+  // parameterized constructor
+  PlayerClass({
     this.name,
     this.hitDie,
     this.proficiencyChoices,
@@ -141,8 +168,9 @@ class Class extends Content {
     this.spells,
   });
 
-  factory Class.fromJson(Map<String, dynamic> json) {
-    return Class(
+  // factory constructor to build object from HTTP response
+  factory PlayerClass.fromJson(Map<String, dynamic> json) {
+    return PlayerClass(
       name: json["name"],
       hitDie: json["hit_die"],
       proficiencyChoices: json["proficiency_choices"],
@@ -159,7 +187,11 @@ class Class extends Content {
   }
 }
 
+// Spell class
+// represents a single spell that players can cast
 class Spell extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   List<dynamic>? desc;
   List<dynamic>? higherLevel;
@@ -174,11 +206,11 @@ class Spell extends Content {
   Map<String, dynamic>? healAtSlotLevel;
   String? attackType;
   Map<String, dynamic>? damage;
-  Map<String, dynamic>? damageAtLevel;
   Map<String, dynamic>? school;
   List<dynamic>? classes;
   List<dynamic>? subclasses;
 
+  // parameterized constructor
   Spell({
     this.name,
     this.desc,
@@ -194,16 +226,13 @@ class Spell extends Content {
     this.healAtSlotLevel,
     this.attackType,
     this.damage,
-    this.damageAtLevel,
     this.school,
     this.classes,
     this.subclasses,
   });
 
+  // factory constructor to build object from HTTP response
   factory Spell.fromJson(Map<String, dynamic> json) {
-    for (String key in json.keys) {
-      print("$key: ${json[key].runtimeType}");
-    }
     return Spell(
       name: json["name"],
       desc: json["desc"],
@@ -219,7 +248,6 @@ class Spell extends Content {
       healAtSlotLevel: json["heal_at_slot_level"],
       attackType: json["attack_type"],
       damage: json["damage"],
-      damageAtLevel: json["damage_at_slot_level"],
       school: json["school"],
       classes: json["classes"],
       subclasses: json["subclasses"],
@@ -228,9 +256,15 @@ class Spell extends Content {
 }
 
 class Equipment extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   List<dynamic>? desc;
   Map<String, dynamic>? equipmentCategory;
+  String? armourCategory;
+  Map<String, dynamic>? armourClass;
+  int? strengthMinimum;
+  bool? stealthDisadvantage;
   String? weaponCategory;
   String? weaponRange;
   String? categoryRange;
@@ -242,10 +276,13 @@ class Equipment extends Content {
   List<dynamic>? special;
   List<dynamic>? contents;
 
+  // parameterized constructor
   Equipment({
     this.name,
     this.desc,
     this.equipmentCategory,
+    this.armourCategory,
+    this.armourClass,
     this.weaponCategory,
     this.weaponRange,
     this.categoryRange,
@@ -258,11 +295,14 @@ class Equipment extends Content {
     this.contents,
   });
 
+  // factory constructor to build object from HTTP response
   factory Equipment.fromJson(Map<String, dynamic> json) {
     return Equipment(
       name: json["name"],
       desc: json["desc"],
       equipmentCategory: json["equipment_category"],
+      armourCategory: json["armor_category"],
+      armourClass: json["armor_class"],
       weaponCategory: json["weapon_category"],
       categoryRange: json["category_range"],
       cost: json["cost"],
@@ -277,6 +317,8 @@ class Equipment extends Content {
 }
 
 class Monster extends Content {
+  // class fields
+  // nullable to accounts for missing fields in API responses
   String? name;
   String? size;
   String? type;
@@ -308,6 +350,7 @@ class Monster extends Content {
   List<dynamic>? forms;
   List<dynamic>? reactions;
 
+  // parameterized constructor
   Monster({
     this.name,
     this.size,
@@ -341,12 +384,8 @@ class Monster extends Content {
     this.reactions,
   });
 
+  // factory constructor to build object from HTTP response
   factory Monster.fromJson(Map<String, dynamic> json) {
-    // print("=-=--=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    // for (String key in json.keys) {
-    //   print("$key: ${json[key].runtimeType}");
-    // }
-
     return Monster(
       name: json["name"],
       size: json["size"],

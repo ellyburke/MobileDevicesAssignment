@@ -1,19 +1,27 @@
 /*
-Widget for the compendium page
+Contributors: Ayaan Mustafa
+Date: 2025/11/30
+Purpose: Describe Widget for the main compendium navigation page
  */
 
+// Imports
 import 'package:flutter/material.dart';
 import 'package:fluttericon/rpg_awesome_icons.dart';
 import 'compendium_page.dart';
 
+// Compendium Widget Class
 class Compendium extends StatefulWidget {
+  // constructor
   const Compendium({super.key});
 
+  // createState method
   @override
   CompendiumState createState() => CompendiumState();
 }
 
+// Compendium Widget State
 class CompendiumState extends State<Compendium> {
+  // List of CompendiumButtons that make up the UI of the Compendium page
   final List<Widget> _compendiumButtons = <Widget>[
     CompendiumButton(label: "races", icon: RpgAwesome.double_team),
     CompendiumButton(label: "backgrounds", icon: RpgAwesome.castle_emblem),
@@ -23,6 +31,7 @@ class CompendiumState extends State<Compendium> {
     CompendiumButton(label: "monsters", icon: RpgAwesome.eye_monster),
   ];
 
+  // build method that returns a gridview of Compendium Buttons
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,17 +52,23 @@ class CompendiumState extends State<Compendium> {
   }
 }
 
+// CompendiumButton Widget Class
 class CompendiumButton extends StatefulWidget {
-  final String label;
-  final IconData icon;
+  // class fields
+  final String label; // button label
+  final IconData icon; // button icon
 
+  // constructor
   const CompendiumButton({super.key, required this.label, required this.icon});
 
+  // createState() method
   @override
   CompendiumButtonState createState() => CompendiumButtonState();
 }
 
+// CompendiumButton Widget State
 class CompendiumButtonState extends State<CompendiumButton> {
+  // build method that returns a single button
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -63,6 +78,7 @@ class CompendiumButtonState extends State<CompendiumButton> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         ),
         onPressed: () {
+          // On press navigate to the corresponding page of the compendium
           Navigator.push(
             context,
             MaterialPageRoute(
