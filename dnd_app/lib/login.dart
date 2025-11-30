@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dnd_app/userDatabase.dart'; 
-import 'package:dnd_app/main.dart'; 
+import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/main.dart';
 import 'registration.dart'; // Import the new registration form
 
 class LoginPage extends StatefulWidget {
@@ -26,12 +26,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showSnack(String text, [Color? bg]) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), backgroundColor: bg));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(text), backgroundColor: bg));
   }
 
   Future<void> _attemptLogin() async {
     final username = _usernameCtrl.text.trim();
-    final password = _passwordCtrl.text; 
+    final password = _passwordCtrl.text;
 
     if (username.isEmpty || password.isEmpty) {
       _showSnack('Please enter both username and password.', Colors.red);
@@ -42,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final user = await UserDatabase.instance.getUserByUsername(username);
-      
+
       if (user != null) {
         if (user.password == password) {
           // Successful login - navigate to HomePage with username
@@ -77,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Text(_showRegistration ? 'Create Account' : 'Sign in'),
         backgroundColor: Color(0xFFA23E2E),
-        leading: _showRegistration 
+        leading: _showRegistration
             ? IconButton(
                 icon: Icon(Icons.arrow_back),
                 onPressed: _toggleRegistration,
@@ -89,11 +91,15 @@ class _LoginPageState extends State<LoginPage> {
           padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Card(
             elevation: 6,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Padding(
               padding: EdgeInsets.all(20),
-              child: _showRegistration 
-                  ? RegistrationForm(onRegistrationComplete: _toggleRegistration)
+              child: _showRegistration
+                  ? RegistrationForm(
+                      onRegistrationComplete: _toggleRegistration,
+                    )
                   : LoginForm(
                       formKey: _formKey,
                       usernameCtrl: _usernameCtrl,
@@ -156,7 +162,11 @@ class LoginForm extends StatelessWidget {
               onPressed: isLoading ? null : onLogin,
               style: ElevatedButton.styleFrom(minimumSize: Size.fromHeight(48)),
               child: isLoading
-                  ? SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : Text('Log in'),
             ),
           ),
@@ -176,7 +186,9 @@ class LoginForm extends StatelessWidget {
           SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('Create an account or log in with existing credentials'),
+            child: Text(
+              'Create an account or log in with existing credentials',
+            ),
           ),
         ],
       ),

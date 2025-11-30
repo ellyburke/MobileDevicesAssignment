@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dnd_app/calendarDatabase.dart';
-import 'package:dnd_app/userDatabase.dart';
+import 'package:dnd_app/calendar_database.dart';
+import 'package:dnd_app/user_database.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // For handling local notifications
 import 'dart:async'; // For countdown functionality
@@ -209,16 +209,18 @@ class _SessionsPageState extends State<SessionsPage> {
     });
   }
 
-  List<dynamic> flattenEventsList(){
+  List<dynamic> flattenEventsList() {
     // Function to flatten list to get the upcoming and past sessions headers
 
     // Map first
-    Map<String, List<CalendarEvent>> map = {'Upcoming Sessions':[], 'Past Sessions':[]};
-    for (CalendarEvent e in eventsList){
-      if (daysUntil(e) < 0){
+    Map<String, List<CalendarEvent>> map = {
+      'Upcoming Sessions': [],
+      'Past Sessions': [],
+    };
+    for (CalendarEvent e in eventsList) {
+      if (daysUntil(e) < 0) {
         map['Past Sessions']?.add(e);
-      }
-      else{
+      } else {
         map['Upcoming Sessions']?.add(e);
       }
     }
@@ -228,8 +230,8 @@ class _SessionsPageState extends State<SessionsPage> {
     final keys = map.keys.toList();
 
     for (String key in keys) {
-      list.add(key);   // Section header
-      list.addAll(map[key]!);  // Section items
+      list.add(key); // Section header
+      list.addAll(map[key]!); // Section items
     }
 
     return list;
@@ -263,7 +265,7 @@ class _SessionsPageState extends State<SessionsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return NewSessionDialog(username: u!,);
+        return NewSessionDialog(username: u!);
       },
     );
     return result;
@@ -293,13 +295,11 @@ class _SessionsPageState extends State<SessionsPage> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text("Sessions"),
-          ),
+          appBar: AppBar(title: Text("Sessions")),
 
           body: Column(
             children: [
-              SizedBox(height: 12,),
+              SizedBox(height: 12),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 30),
                 child: ElevatedButton(
@@ -344,36 +344,33 @@ class _SessionsPageState extends State<SessionsPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 10,),
+              SizedBox(height: 10),
               if (eventsList.isEmpty)
-                Center(
-                  child: Text("No Sessions Scheduled"),
-                )
+                Center(child: Text("No Sessions Scheduled"))
               else
                 Expanded(
-                    child: ListView.builder(
-                        itemCount: flattenedList.length,
-                        itemBuilder: (context, index){
-                          final item = flattenedList[index];
-                          if (item is String){
-                            return Padding(
-                                padding: EdgeInsets.only(left: 12),
-                                child: Text(
-                                  item,
-                                  style: TextStyle(
-                                      fontSize: 35,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                ),
-                            );
-                          }
-                          else{
-                            return _buildEventCard(item);
-                          }
-                        }
-                    )
-                )
-              
+                  child: ListView.builder(
+                    itemCount: flattenedList.length,
+                    itemBuilder: (context, index) {
+                      final item = flattenedList[index];
+                      if (item is String) {
+                        return Padding(
+                          padding: EdgeInsets.only(left: 12),
+                          child: Text(
+                            item,
+                            style: TextStyle(
+                              fontSize: 35,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return _buildEventCard(item);
+                      }
+                    },
+                  ),
+                ),
+
               // Expanded(
               //     child: SingleChildScrollView(
               //       child: Column(
@@ -427,26 +424,20 @@ class _SessionsPageState extends State<SessionsPage> {
               //       ),
               //     ),
               // )
-        ]
-          )
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildEventCard(CalendarEvent event){
-
+  Widget _buildEventCard(CalendarEvent event) {
     return Card(
       elevation: 4,
       shadowColor: Colors.black26,
       color: Colors.grey.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      margin: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -454,8 +445,7 @@ class _SessionsPageState extends State<SessionsPage> {
           children: [
             // Header Row
             Row(
-              mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Session ${event.id}",
@@ -466,30 +456,29 @@ class _SessionsPageState extends State<SessionsPage> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: daysUntil(event) < 0 ? Colors.red.shade600 :
-                    daysUntil(event) == 0 ? Colors.green.shade600 :
-                    Colors.blue.shade600,
+                    color: daysUntil(event) < 0
+                        ? Colors.red.shade600
+                        : daysUntil(event) == 0
+                        ? Colors.green.shade600
+                        : Colors.blue.shade600,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(
-                          0.15,
-                        ),
+                        color: Colors.black.withOpacity(0.15),
                         blurRadius: 4,
                         offset: Offset(2, 2),
                       ),
                     ],
                   ),
                   child: Text(
-                    daysUntil(event) == 0 ? 'TODAY' :
-                    daysUntil(event) < 0 ? 'PASSED' :
-                    'in ${daysUntil(event)} '
-                        '${daysUntil(event) == 1 ? 'day' : 'days'}',
+                    daysUntil(event) == 0
+                        ? 'TODAY'
+                        : daysUntil(event) < 0
+                        ? 'PASSED'
+                        : 'in ${daysUntil(event)} '
+                              '${daysUntil(event) == 1 ? 'day' : 'days'}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -519,10 +508,7 @@ class _SessionsPageState extends State<SessionsPage> {
             // Time
             Text(
               "🕒  Time: ${event.time}",
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
             ),
 
             // Attendees
@@ -531,16 +517,12 @@ class _SessionsPageState extends State<SessionsPage> {
               children: [
                 Text(
                   "👥  Attendees: ${event.attendees.join(', ')}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
                 ),
                 IconButton(
                   onPressed: () async {
                     // Delete event
-                    await CalendarDatabase.instance
-                        .deleteEvent(event.id!);
+                    await CalendarDatabase.instance.deleteEvent(event.id!);
                     // Refresh List
                     setState(() {
                       loadEvents();
@@ -652,11 +634,10 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
     final result = await UserDatabase.instance.getUserByUsername(attendeeValue);
 
     setState(() {
-      if (result == null){
+      if (result == null) {
         notValid = true;
         valid = false;
-      }
-      else{
+      } else {
         notValid = false;
         valid = true;
       }
@@ -668,11 +649,10 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
     final attendee = _attendeeController.text.trim();
 
     setState(() {
-      if (_attendees.contains(attendee)){
+      if (_attendees.contains(attendee)) {
         // If attendee is already added to the list
         helperText = 'Attendee already added';
-      }
-      else {
+      } else {
         _attendees.add(attendee);
         _attendeeController.clear();
       }
@@ -703,7 +683,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
             ),
             Text(
               "Selected Date: ${_selectedDate?.year ?? 'YYYY'}-"
-                  "${_selectedDate?.month ?? 'MM'}-${_selectedDate?.day ?? 'DD'}",
+              "${_selectedDate?.month ?? 'MM'}-${_selectedDate?.day ?? 'DD'}",
             ),
 
             const SizedBox(height: 15),
@@ -734,10 +714,13 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
                       errorText: notValid ? 'User not found' : null,
                       helperText: helperText,
                       helperStyle: TextStyle(color: Colors.green.shade400),
-                      suffixIcon: valid ? Icon(Icons.check, color: Colors.green,) :
-                          notValid ? Icon(Icons.close, color: Colors.red,) : null
+                      suffixIcon: valid
+                          ? Icon(Icons.check, color: Colors.green)
+                          : notValid
+                          ? Icon(Icons.close, color: Colors.red)
+                          : null,
                     ),
-                    onChanged: (value){
+                    onChanged: (value) {
                       // Check the database if the user exists, show icon to indicate
                       checkForAttendee(value);
                     },

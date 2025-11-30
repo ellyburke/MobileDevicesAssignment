@@ -1,10 +1,44 @@
-// Form ui to create a new character
+/*
+This file contains multiple pages. I'm so sorry to the person who has to mark this.
+They are all part of the character creation process.
+
+First you are asked to name your character.
+
+Next, you are asked to pick a Race from DnD,
+the page will then display the stats of the race you chose.
+
+The next page asks you to input your characters level (1-20),
+and then to choose a class from DnD, after you pick a class,
+the page dynamically builds some more dropdown menus for you to
+pick your skills. This had to be done dynamically since, each class in
+DnD has a different pool of skills and a different number of skills they can select.
+
+The next page asks the User to input their Ability Scores,
+they are told to roll a 20 sided dice and then enter that number into the text box.
+
+If they chose a class that does not cast spells, or their level is too low for spells,
+they skip this page.
+If they chose a spellcasting class, they get redirected to a page where they must pick
+spells based on how many they are allowed, this number depends on their class and level.
+This page also includes a dialog box to show the information of the spell.
+
+This page collects the rest of the information from the user.
+Each character is allowed to pick up to 2 languages to learn.
+Each character has an alignment, this is supposed to be like their personality,
+and should affect their choices.
+Then the User inputs their characters Armor Class, the higher this value is,
+the harder it is for enemies to hit you.
+Then there are two text boxes for the user to input their appearance and their backstory.
+
+After they click Create Character, it adds that character to the database and then redirects
+them back to the page that displays a list of all of their characters.
+ */
 
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:dnd_app/character_databases.dart';
-import 'package:dnd_app/backEnd.dart';
+import 'package:dnd_app/character_class.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
@@ -560,6 +594,13 @@ class SelectClassState extends State<SelectClass> {
 
       final names = options
           .map((opt) => (opt['item'] as Map<String, dynamic>)['name'] as String)
+          .map((name) {
+            // Turn "Skill: Acrobatics" into "Acrobatics"
+            if (name.startsWith('Skill: ')) {
+              return name.substring('Skill: '.length);
+            }
+            return name;
+          })
           .toList();
 
       final count = firstChoice['choose'] as int;
@@ -1849,6 +1890,7 @@ class backgroundState extends State<backgroundPage> {
     _armorClassController.clear();
     _appearanceController.clear();
     _levelController.clear();
+    _backgroundController.clear();
   }
 
   final List<String?> selectedExtra = List<String?>.filled(2, null);

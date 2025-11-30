@@ -1,4 +1,4 @@
-import 'package:dnd_app/userDatabase.dart';
+import 'package:dnd_app/user_database.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
@@ -12,7 +12,6 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
-
   // Mian friends list
   List<User> friendsList = [];
 
@@ -58,13 +57,15 @@ class _FriendsPageState extends State<FriendsPage> {
       // FILTER
       if (query.isNotEmpty) {
         final matches =
-            display.contains(query) || first.contains(query) || user.contains(query);
+            display.contains(query) ||
+            first.contains(query) ||
+            user.contains(query);
         if (!matches) continue;
       }
 
       // SECTION LETTER
-      String firstLetter =
-      (friend.displayName ?? friend.firstName)[0].toUpperCase();
+      String firstLetter = (friend.displayName ?? friend.firstName)[0]
+          .toUpperCase();
 
       newMap.putIfAbsent(firstLetter, () => []);
       newMap[firstLetter]!.add(friend);
@@ -102,21 +103,19 @@ class _FriendsPageState extends State<FriendsPage> {
 
     await loadFriends();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Friend added!")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Friend added!")));
   }
 
   Future<void> removeFriend(int friendId) async {
     await UserDatabase.instance.removeFriend(widget.userId!, friendId);
     await loadFriends();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Friend removed")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Friend removed")));
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -126,12 +125,7 @@ class _FriendsPageState extends State<FriendsPage> {
         actions: [
           ElevatedButton(
             onPressed: addFriend,
-            child: const Row(
-              children: [
-                Icon(Icons.add),
-                Text("Add a friend"),
-              ],
-            ),
+            child: const Row(children: [Icon(Icons.add), Text("Add a friend")]),
           ),
         ],
       ),
@@ -139,98 +133,98 @@ class _FriendsPageState extends State<FriendsPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
-          const SizedBox(height: 15),
+              children: [
+                const SizedBox(height: 15),
 
-          // SEARCH BAR
-          SearchBar(
-            controller: searchController,
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 16.0),
-            ),
-            hintText: "Search username or display name…",
-            onChanged: (value) {
-              setState(() {
-                filteredMap = mapData(friendsList, text: value);
-                filteredList = buildFlattenedList(filteredMap);
-              });
-            },
-          ),
+                // SEARCH BAR
+                SearchBar(
+                  controller: searchController,
+                  padding: const WidgetStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 16.0),
+                  ),
+                  hintText: "Search username or display name…",
+                  onChanged: (value) {
+                    setState(() {
+                      filteredMap = mapData(friendsList, text: value);
+                      filteredList = buildFlattenedList(filteredMap);
+                    });
+                  },
+                ),
 
-          const SizedBox(height: 15),
+                const SizedBox(height: 15),
 
-          // No friends?
-          if (friendsList.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("You have no friends :("),
-                    ElevatedButton(
-                      onPressed: addFriend,
-                      child: const Row(
+                // No friends?
+                if (friendsList.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add),
-                          Text("Add a friend now"),
+                          const Text("You have no friends :("),
+                          ElevatedButton(
+                            onPressed: addFriend,
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add),
+                                Text("Add a friend now"),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            )
-          else
-          // FRIENDS LIST
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredList.length,
-                itemBuilder: (context, index) {
-                  final item = filteredList[index];
+                  )
+                else
+                  // FRIENDS LIST
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredList[index];
 
-                  // Alphabet section header
-                  if (item is String) {
-                    return Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Text(
-                        item,
-                        style: const TextStyle(
-                            fontSize: 35, fontWeight: FontWeight.bold),
-                      ),
-                    );
-                  }
+                        // Alphabet section header
+                        if (item is String) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              item,
+                              style: const TextStyle(
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }
 
-                  final user = item as User;
+                        final user = item as User;
 
-                  return _buildFriendCard(user);
-                },
-              ),
+                        return _buildFriendCard(user);
+                      },
+                    ),
+                  ),
+              ],
             ),
-        ],
-      ),
     );
   }
 
-  Widget _buildFriendCard(User user){
+  Widget _buildFriendCard(User user) {
     return Card(
-      margin: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: const CircleAvatar(
-            radius: 25, child: Icon(Icons.person)),
+        leading: const CircleAvatar(radius: 25, child: Icon(Icons.person)),
 
         title: Row(
           children: [
             Text(
               user.displayName ?? user.firstName,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 25),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 25),
             ),
             const SizedBox(width: 10),
             Text(user.pronouns ?? ''),
@@ -271,15 +265,19 @@ class _FriendsPageState extends State<FriendsPage> {
     String? helperText;
     String? errorText;
 
-    Future<void> checkForUser(String value, void Function(void Function()) setStateDialog) async {
-      final result = await UserDatabase.instance.getUserByUsername(value.trim());
+    Future<void> checkForUser(
+      String value,
+      void Function(void Function()) setStateDialog,
+    ) async {
+      final result = await UserDatabase.instance.getUserByUsername(
+        value.trim(),
+      );
 
       setStateDialog(() {
-        if (result == null){
+        if (result == null) {
           notValid = true;
           valid = false;
-        }
-        else{
+        } else {
           notValid = false;
           valid = true;
         }
@@ -303,8 +301,10 @@ class _FriendsPageState extends State<FriendsPage> {
                       prefixIcon: const Icon(Icons.person),
                       errorText: notValid ? "User not found" : null,
                       helperText: helperText,
-                      suffixIcon: valid ? const Icon(Icons.check, color: Colors.green)
-                          : notValid ? const Icon(Icons.close, color: Colors.red)
+                      suffixIcon: valid
+                          ? const Icon(Icons.check, color: Colors.green)
+                          : notValid
+                          ? const Icon(Icons.close, color: Colors.red)
                           : null,
                     ),
                     onChanged: (value) {
@@ -320,8 +320,9 @@ class _FriendsPageState extends State<FriendsPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final user = await UserDatabase.instance
-                        .getUserByUsername(_usernameController.text.trim());
+                    final user = await UserDatabase.instance.getUserByUsername(
+                      _usernameController.text.trim(),
+                    );
 
                     if (user == null) {
                       setStateDialog(() {
@@ -343,5 +344,4 @@ class _FriendsPageState extends State<FriendsPage> {
       },
     );
   }
-
 }

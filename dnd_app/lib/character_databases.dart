@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'backEnd.dart';
+import 'character_class.dart';
 
 class CharacterDatabase {
   static final CharacterDatabase instance = CharacterDatabase._init();

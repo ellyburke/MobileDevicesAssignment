@@ -1,120 +1,14 @@
-// TODO Implement this library.import 'dart:convert';
-
+/*
+This page displays the Selected character,
+ */
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:dnd_app/backEnd.dart';
+import 'package:dnd_app/character_class.dart';
 import 'package:http/http.dart' as http;
 import 'package:dnd_app/screens/characters.dart';
 
-import 'newcharacterform.dart';
-
-/*
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'DnD App',
-      theme: ThemeData(
-        appBarTheme: (AppBarTheme(
-          backgroundColor: Color(0xFFA23E2E),
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
-        )),
-        scaffoldBackgroundColor: Color(0xFFF4EBD0),
-        colorScheme: ColorScheme(
-          brightness: Brightness.light,
-          primary: Color(0xFFC2A878),
-          onPrimary: Color(0xFFF4EBD0),
-          secondary: Color(0xFF6B4E24),
-          onSecondary: Color(0xFFF4EBD0),
-          error: Colors.red,
-          onError: Colors.white,
-          surface: Colors.white,
-          onSurface: Colors.black,
-        ),
-      ),
-      home: singleCharacter(
-        character: Character(
-          hp: 99,
-          strength: 20,
-          dexterity: 18,
-          intelligence: 18,
-          constitution: 18,
-          wisdom: 18,
-          charisma: 19,
-          name: 'Test',
-          race: 'Dragonborn',
-          level: 3,
-          armorClass: 18,
-          initiative: 4,
-          speed: 30,
-          passivePerception: 4,
-          background: 'Balding due to having no hair',
-          alignment: 'True Neutral',
-          appearance: 'Bald',
-          size: 'medium',
-          Class: 'Druid',
-          skillBonuses: {
-            'Athletics': false,
-            'Acrobatics': false,
-            'Sleight of Hand': false,
-            'Stealth': false,
-            'Arcana': false,
-            'History': false,
-            'Investigation': false,
-            'Nature': true,
-            'Religion': false,
-            'Animal Handling': true,
-            'Insight': false,
-            'Medicine': false,
-            'Perception': false,
-            'Survival': false,
-            'Deception': false,
-            'Intimidation': false,
-            'Performance': false,
-            'Persuasion': false,
-          },
-          inventory: {'Gold': 100},
-          spellCastingAbility: {
-            'Spell Casting Modifier': 8,
-            'Spell Save DC': 6,
-            'Spell Attack Bonus': 6,
-          },
-          spellSlots: {
-            'Level 1': 4,
-            'Level 2': 2,
-            'Level 3': 0,
-            'Level 4': 0,
-            'Level 5': 0,
-            'Level 6': 0,
-            'Level 7': 0,
-            'Level 8': 0,
-            'Level 9': 0,
-          },
-          features: [],
-          traits: ['Draconic Ancestry', 'Breath Weapon', 'Damage Resistance'],
-          equipment: [],
-          proficiencies: 2,
-          languages: ['Common', 'Draconic', 'Abyssal', 'Celestial'],
-          spells: ['druidcraft', 'guidance', 'darkvision'],
-        ),
-      ),
-    );
-  }
-}
-*/
+import 'new_character_form.dart';
 
 class singleCharacter extends StatefulWidget {
   final String username;
@@ -275,6 +169,7 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
+              //This Card shows their Combat stats
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -319,6 +214,8 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
+              //This Card shows their Spell Casting Ability, even if they don't cast spells
+              //This should still show, so the user know's their spell save DC
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -363,6 +260,7 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
+              //This Card shows their Ability Scores and their modifiers
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -402,44 +300,45 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
-              if (c.skillBonuses.values.any((v) => v == true))
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: RichText(
-                      text: TextSpan(
-                        text: 'Proficiencies\n',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                        children: <TextSpan>[
-                          const TextSpan(
-                            text: '--------\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          for (var entry in c.skillBonuses.entries)
-                            if (entry.value)
-                              TextSpan(
-                                text: '${entry.key}\n',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                        ],
+              //This card shows the Skills that they chose
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Proficiencies\n',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
+                      children: <TextSpan>[
+                        const TextSpan(
+                          text: '--------\n',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        for (var entry in c.skillBonuses.entries)
+                          if (entry.value)
+                            TextSpan(
+                              text: '${entry.key}\n',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                      ],
                     ),
                   ),
                 ),
+              ),
 
               const SizedBox(height: 12),
 
+              //This Card shows the traits from their race, as long as they have 1 or more
               if ((c.traits as List).isNotEmpty)
                 Card(
                   elevation: 2,
@@ -477,6 +376,8 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
+              //This card only shows if they are a spellcaster
+              //It shows them how many of each level spell they can cast before they have to rest
               if (c.spellSlots['Level 1'] != 0)
                 Card(
                   elevation: 2,
@@ -515,25 +416,27 @@ class singleCharacterState extends State<singleCharacter> {
 
               const SizedBox(height: 12),
 
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Spells",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+              //This card shows the spells that they chose,
+              // also has a button for a dialog that explains the spell
+              if (c.spellSlots['Level 1'] != 0)
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Spells",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (c.spellSlots['Level 1'] != 0)
+                        const SizedBox(height: 8),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -557,13 +460,13 @@ class singleCharacterState extends State<singleCharacter> {
                             );
                           },
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 12),
-
+              //The rest of these cards are self explanatory
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -683,6 +586,8 @@ class singleCharacterState extends State<singleCharacter> {
       ),
     );
   }
+
+  //Helper Widgets to display certain information
 
   Widget _statBox(String label, String value, {int flex = 1}) {
     return Expanded(

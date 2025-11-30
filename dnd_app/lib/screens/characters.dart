@@ -1,15 +1,15 @@
 // Characters Screen
 
-import 'package:dnd_app/screens/singleCharacter.dart';
+import 'package:dnd_app/screens/single_character.dart';
 import 'package:flutter/material.dart';
-import 'package:dnd_app/screens/newcharacterform.dart';
+import 'package:dnd_app/screens/new_character_form.dart';
 
 //  Database imports
 import 'package:dnd_app/character_databases.dart';
-import 'package:dnd_app/userDatabase.dart';
+import 'package:dnd_app/user_database.dart';
 
 // Model imports
-import 'package:dnd_app/backEnd.dart';
+import 'package:dnd_app/character_class.dart';
 
 import '../main.dart';
 
@@ -75,9 +75,7 @@ class _CharacterPageState extends State<CharacterPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => HomePage(username: u),
-                ),
+                MaterialPageRoute(builder: (context) => HomePage(username: u)),
               );
             },
             icon: Icon(Icons.arrow_back),
@@ -85,15 +83,17 @@ class _CharacterPageState extends State<CharacterPage> {
           actions: [
             TextButton(
               onPressed: () async {
+                //After Character Creation returns here, the list is refreshed
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => NewCharacterForm(passedusername: u)),
+                  MaterialPageRoute(
+                    builder: (context) => NewCharacterForm(passedusername: u),
+                  ),
                 );
-
-                if (result == true || result == null) {
+                if (result != null) {
                   setState(() {
                     characterList = CharacterDatabase.instance
-                        .readAllCharacters();
+                        .getAllCharactersByUsername(u);
                   });
                 }
               },
@@ -156,7 +156,6 @@ class _CharacterPageState extends State<CharacterPage> {
         // ============================
         body: TabBarView(
           children: [
-
             // =================
             // FIRST TAB
             // =================
@@ -197,46 +196,34 @@ class _CharacterPageState extends State<CharacterPage> {
             // ===============
             if (friendsCharacters.isEmpty)
               Center(child: Text("Your friends have no characters yet :("))
-
             else
               ListView.builder(
-                  itemCount: friendsCharacters.length,
-                  itemBuilder: (context, index) {
-                    final character = friendsCharacters[index];
+                itemCount: friendsCharacters.length,
+                itemBuilder: (context, index) {
+                  final character = friendsCharacters[index];
 
-                    return _buildCharacterCard(character);
-                  }
-              )
-
-
-
-            ,
+                  return _buildCharacterCard(character);
+                },
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCharacterCard(Character character){
+  Widget _buildCharacterCard(Character character) {
     return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         title: Text(character.name ?? 'Unnamed'),
-        subtitle: Text(
-          'Level ${character.level ?? 1} ${character.race ?? ''}',
-        ),
+        subtitle: Text('Level ${character.level ?? 1} ${character.race ?? ''}'),
         onTap: () {
           // Open that specific character
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => singleCharacter(
-                character: character,
-                username: u,
-              ),
+              builder: (_) =>
+                  singleCharacter(character: character, username: u),
             ),
           );
         },
@@ -245,9 +232,7 @@ class _CharacterPageState extends State<CharacterPage> {
           onPressed: () async {
             // Make sure the character has an id before deleting
             if (character.id != null) {
-              await CharacterDatabase.instance.delete(
-                character.id!,
-              );
+              await CharacterDatabase.instance.delete(character.id!);
 
               setState(() {
                 characterList = CharacterDatabase.instance

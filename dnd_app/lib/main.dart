@@ -6,7 +6,7 @@ import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
-import 'package:dnd_app/userDatabase.dart';
+import 'package:dnd_app/user_database.dart';
 import 'login.dart';
 
 void main() async {
@@ -70,13 +70,25 @@ class _HomePageState extends State<HomePage> {
   // Pages list for navigation
   late List<Map<String, dynamic>> pages;
 
-  Future<void> loadUser() async{
+  Future<void> loadUser() async {
     user = await UserDatabase.instance.getUserByUsername(widget.username);
     pages = [
-      {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage(thisUsername: u, userId: user?.id)},
+      {
+        'title': 'Characters',
+        'icon': Icons.add,
+        'screen': CharacterPage(thisUsername: u, userId: user?.id),
+      },
       {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
-      {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage(userId: user?.id,)},
-      {'title': 'Sessions', 'icon': Icons.calendar_month, 'screen': SessionsPage(username: u,)},
+      {
+        'title': 'Friends',
+        'icon': Icons.people,
+        'screen': FriendsPage(userId: user?.id),
+      },
+      {
+        'title': 'Sessions',
+        'icon': Icons.calendar_month,
+        'screen': SessionsPage(username: u),
+      },
     ];
 
     setState(() {});
@@ -118,9 +130,8 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 50),
             // Future builder to get snapshot of user data
             Text(
-                style: TextStyle(fontSize: 30),
-                "Welcome, ${user?.displayName ?? user?.firstName}"
-
+              style: TextStyle(fontSize: 30),
+              "Welcome, ${user?.displayName ?? user?.firstName}",
             ),
             SizedBox(height: 40),
             Row(
