@@ -2,351 +2,314 @@ import 'package:dnd_app/userDatabase.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
-import 'package:fluttericon/elusive_icons.dart';
-
-class FriendsPage extends StatefulWidget{
+class FriendsPage extends StatefulWidget {
   final int? userId;
 
   const FriendsPage({super.key, required this.userId});
-  
+
   @override
   State<FriendsPage> createState() => _FriendsPageState();
 }
 
-class _FriendsPageState extends State<FriendsPage>{
-  //Store the current logged in user id
+class _FriendsPageState extends State<FriendsPage> {
 
-  // Get the list of friends in the database
-  late Future<List<User>> friendsData;
-  late Future<List<User>> usersData;
+  // Mian friends list
+  List<User> friendsList = [];
 
-  // Store a bool to by pass filtered list initialization
-  bool _initialized = false;
-
-  // Main friends list (all friends)
-  List<dynamic> friendsList = [];
-  Map<String, List<User>> sectionMap = {};
-
-  // Filtered list
+  // Filtered data
   Map<String, List<User>> filteredMap = {};
   List<dynamic> filteredList = [];
 
-  // Text controller for search bar
   TextEditingController searchController = TextEditingController();
 
-  void refreshData() {
-    setState(() async {
-      final refreshedData = await UserDatabase.instance.getFriends(widget.userId!);
-      friendsList = refreshedData;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadFriends();
+  }
+
+  Future<void> loadFriends() async {
+    setState(() => _loading = true);
+
+    final list = await UserDatabase.instance.getFriends(widget.userId!);
+
+    setState(() {
+      friendsList = list;
       filteredMap = mapData(friendsList);
       filteredList = buildFlattenedList(filteredMap);
+      _loading = false;
     });
   }
 
-  Map<String, List<User>> mapData(List<dynamic> friends, {String text = ''}){
-    // Function to map the list into alphabet sections to display on page
-
+  // ============================
+  // MAP INTO A→Z SECTIONS
+  // ============================
+  Map<String, List<User>> mapData(List<User> friends, {String text = ''}) {
     final query = text.trim().toLowerCase();
-
-    // Create a new map
     Map<String, List<User>> newMap = {};
 
-    // Go through the whole list
-    for (User friend in friends){
-      // Normalize fields (prevent null errors)
+    for (User friend in friends) {
       final display = (friend.displayName ?? friend.firstName).toLowerCase();
       final first = friend.firstName.toLowerCase();
       final user = friend.username.toLowerCase();
 
-      // Filter for searching
+      // FILTER
       if (query.isNotEmpty) {
-        final matches = display.contains(query) || first.contains(query) ||
-            user.contains(query);
-        // Skip adding to map if no match
+        final matches =
+            display.contains(query) || first.contains(query) || user.contains(query);
         if (!matches) continue;
       }
 
-      // Determine section letter
-      String firstLetter = (friend.displayName ?? friend.firstName)[0].toUpperCase();
+      // SECTION LETTER
+      String firstLetter =
+      (friend.displayName ?? friend.firstName)[0].toUpperCase();
 
-      // Ensure letter has a list to add to
-      if (!newMap.containsKey(firstLetter)){
-        newMap[firstLetter] = [];
-      }
-      newMap[firstLetter]?.add(friend);
+      newMap.putIfAbsent(firstLetter, () => []);
+      newMap[firstLetter]!.add(friend);
     }
 
-    // Sort map
-    var sortedByKeyMap = SplayTreeMap<String, List<User>>.from(newMap);
-    return sortedByKeyMap;
+    return SplayTreeMap<String, List<User>>.from(newMap);
   }
 
   List<dynamic> buildFlattenedList(Map<String, List<User>> sectionMap) {
-    // This function returns a flattened list of friends including the section
-    // headers to display in the list builder
-    final List<dynamic> flattened = [];
+    // Function to flatten the list for alphabet sectioning
 
+    final List<dynamic> flattened = [];
     final sortedKeys = sectionMap.keys.toList()..sort();
 
     for (String key in sortedKeys) {
-      flattened.add(key);                   // Section header (String)
-      flattened.addAll(sectionMap[key]!);   // Section items (User objects)
+      flattened.add(key);
+      flattened.addAll(sectionMap[key]!);
     }
     return flattened;
   }
 
-  // Add a user for testing
-  void addFriend() async {
+  Future<void> addFriend() async {
     final result = await showAddFriendDialog(context);
-    if (result != null){
-      // Check if they are already friends
-      final alreadyFriends = friendsList.any((u) => u.id == result.id);
+    if (result == null) return;
 
-      if (!alreadyFriends){
-        UserDatabase.instance.addFriend(widget.userId!, result.id!);
-        setState(() {});
-        refreshData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("New friend added successfully!"),
-          ),
-        );
-      }
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("This person is already your friend"),
-          ),
-        );
-      }
+    final alreadyFriends = friendsList.any((u) => u.id == result.id);
+    if (alreadyFriends) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("This person is already your friend")),
+      );
+      return;
     }
-    setState(() {});
 
-  }
+    await UserDatabase.instance.addFriend(widget.userId!, result.id!);
 
-  void removeFriend(int friendId){
-    UserDatabase.instance.removeFriend(widget.userId!, friendId);
-    setState(() {});
+    await loadFriends();
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Friend is removed"),
-      ),
+      const SnackBar(content: Text("Friend added!")),
     );
-    refreshData();
   }
 
-  Future<void> printUsers() async {
-    final users = await UserDatabase.instance.getAllUser();
+  Future<void> removeFriend(int friendId) async {
+    await UserDatabase.instance.removeFriend(widget.userId!, friendId);
+    await loadFriends();
 
-    for (var user in users) {
-      print("ID: ${user.id}, Username: ${user.username}, Name: ${user.firstName} ${user.lastName}");
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Friend removed")),
+    );
   }
 
 
-  @override
-  void initState() {
-    friendsData = UserDatabase.instance.getFriends(widget.userId!);
-    printUsers();
-  }
+
   @override
   Widget build(BuildContext context) {
-    // Wrap the entire Scaffold in a Future builder
-    return FutureBuilder(
-      future: friendsData,
-      builder: (context, snapshot) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Friends"),
+        actions: [
+          ElevatedButton(
+            onPressed: addFriend,
+            child: const Row(
+              children: [
+                Icon(Icons.add),
+                Text("Add a friend"),
+              ],
+            ),
+          ),
+        ],
+      ),
 
-        // While loading
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+        children: [
+          const SizedBox(height: 15),
 
-        // If error
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(title: Text("Friends")),
-            body: Center(child: Text("An error has occurred")),
-          );
-        }
+          // SEARCH BAR
+          SearchBar(
+            controller: searchController,
+            padding: const WidgetStatePropertyAll<EdgeInsets>(
+              EdgeInsets.symmetric(horizontal: 16.0),
+            ),
+            hintText: "Search username or display name…",
+            onChanged: (value) {
+              setState(() {
+                filteredMap = mapData(friendsList, text: value);
+                filteredList = buildFlattenedList(filteredMap);
+              });
+            },
+          ),
 
-        // Extract data when there is stuff in the database (all friends)
-        friendsList = snapshot.data ?? [];
+          const SizedBox(height: 15),
 
-        if (!_initialized){
-          sectionMap = mapData(friendsList);
-          // Save a filtered version
-          filteredMap = mapData(friendsList);
-          filteredList = buildFlattenedList(sectionMap);
-          _initialized = true;
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("Friends"),
-            actions: [
-              ElevatedButton(
-                onPressed: () async {
-                  addFriend();
-                },
-
-                child: Row(
-                  children: const [
-                    Icon(Icons.add),
-                    Text("Add a friend"),
+          // No friends?
+          if (friendsList.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("You have no friends :("),
+                    ElevatedButton(
+                      onPressed: addFriend,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add),
+                          Text("Add a friend now"),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+            )
+          else
+          // FRIENDS LIST
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredList.length,
+                itemBuilder: (context, index) {
+                  final item = filteredList[index];
 
-          body: Column(
-            children: [
-              const SizedBox(height: 15),
+                  // Alphabet section header
+                  if (item is String) {
+                    return Padding(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Text(
+                        item,
+                        style: const TextStyle(
+                            fontSize: 35, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }
 
-              SearchBar(
-                controller: searchController,
-                padding: const WidgetStatePropertyAll<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 16.0),
-                ),
-                hintText: "Search username or display name...",
-                onChanged: (value){
-                  setState(() {
-                    filteredMap = mapData(friendsList, text: value);
-                    filteredList = buildFlattenedList(filteredMap);
-                  });
+                  final user = item as User;
+
+                  return _buildFriendCard(user);
                 },
               ),
-
-              const SizedBox(height: 15),
-
-              // 🔥 Handle the "no friends" case
-              if (friendsList.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("You have no friends :("),
-                        ElevatedButton(
-                          onPressed: () async {
-                            addFriend();
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.add),
-                              Text("Add a friend now"),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-              // Show friends list
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filteredList.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredList[index];
-
-                      // If the 'item' is a string
-                      if (item is String){
-                        return Row(
-                          children: [
-                            SizedBox(width: 12,),
-                            Text(
-                              item,
-                              style: TextStyle(
-                                  fontSize: 35,
-                                  fontWeight: FontWeight.bold
-                              ),
-                            )
-                          ],
-                        );
-                      }
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-                          leading: CircleAvatar(
-                            radius: 25,
-                            child: const Icon(Icons.person),
-                          ),
-                          title: Row(
-                            children: [
-                              Text(
-                                item.displayName ?? '${item.firstName}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 25
-                                ),
-                              ),
-                              SizedBox(width: 10,),
-                              Text(item.pronouns ?? '')
-                            ],
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("@${item.username}"),
-                              if (item.bio != null && item.bio!.isNotEmpty)
-                                Text(
-                                  "📣 \"${item.bio!}\"",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                            ],
-                          ),
-                          trailing: IconButton(
-                            onPressed: (){
-                              removeFriend(item.id);
-                            },
-                            icon: Icon(Icons.delete),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
+            ),
+        ],
+      ),
     );
   }
 
-  // ==============================
-  // Add friend dialog
-  // ==============================
+  Widget _buildFriendCard(User user){
+    return Card(
+      margin: const EdgeInsets.symmetric(
+          horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: const CircleAvatar(
+            radius: 25, child: Icon(Icons.person)),
+
+        title: Row(
+          children: [
+            Text(
+              user.displayName ?? user.firstName,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 25),
+            ),
+            const SizedBox(width: 10),
+            Text(user.pronouns ?? ''),
+          ],
+        ),
+
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("@${user.username}"),
+            if (user.bio != null && user.bio!.isNotEmpty)
+              Text(
+                "📣 \"${user.bio!}\"",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 15),
+              ),
+          ],
+        ),
+
+        trailing: IconButton(
+          onPressed: () => removeFriend(user.id!),
+          icon: const Icon(Icons.delete),
+        ),
+      ),
+    );
+  }
+
+  // ============================
+  // ADD FRIEND DIALOG
+  // ============================
   Future<User?> showAddFriendDialog(BuildContext context) async {
-    final usernameController = TextEditingController();
+    final _usernameController = TextEditingController();
+
+    // Local dialog state
+    bool valid = false;
+    bool notValid = false;
+    String? helperText;
     String? errorText;
+
+    Future<void> checkForUser(String value, void Function(void Function()) setStateDialog) async {
+      final result = await UserDatabase.instance.getUserByUsername(value.trim());
+
+      setStateDialog(() {
+        if (result == null){
+          notValid = true;
+          valid = false;
+        }
+        else{
+          notValid = false;
+          valid = true;
+        }
+      });
+    }
 
     return showDialog<User?>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, setStateDialog) {
             return AlertDialog(
               title: const Text("Add a Friend by Username"),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    controller: usernameController,
+                  TextFormField(
+                    controller: _usernameController,
                     decoration: InputDecoration(
-                      labelText: "Username",
+                      labelText: "Enter Username",
                       prefixIcon: const Icon(Icons.person),
-                      errorText: errorText,
+                      errorText: notValid ? "User not found" : null,
+                      helperText: helperText,
+                      suffixIcon: valid ? const Icon(Icons.check, color: Colors.green)
+                          : notValid ? const Icon(Icons.close, color: Colors.red)
+                          : null,
                     ),
+                    onChanged: (value) {
+                      checkForUser(value, setStateDialog);
+                    },
                   ),
                 ],
               ),
@@ -355,19 +318,21 @@ class _FriendsPageState extends State<FriendsPage>{
                   onPressed: () => Navigator.pop(context),
                   child: const Text("Cancel"),
                 ),
-
                 ElevatedButton(
                   onPressed: () async {
                     final user = await UserDatabase.instance
-                        .getUserByUsername(usernameController.text.trim());
+                        .getUserByUsername(_usernameController.text.trim());
 
                     if (user == null) {
-                      setState(() {
+                      setStateDialog(() {
                         errorText = "User not found";
+                        notValid = true;
+                        valid = false;
                       });
-                    } else {
-                      Navigator.pop(context, user);
+                      return;
                     }
+
+                    Navigator.pop(context, user);
                   },
                   child: const Text("Add"),
                 ),
@@ -378,6 +343,5 @@ class _FriendsPageState extends State<FriendsPage>{
       },
     );
   }
-
 
 }
