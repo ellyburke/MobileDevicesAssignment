@@ -39,7 +39,7 @@ class CompendiumState extends State<Compendium> {
       body: Expanded(
         child: GridView.count(
           primary: false,
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(10),
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 20,
@@ -74,7 +74,7 @@ class CompendiumButtonState extends State<CompendiumButton> {
     return Center(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          minimumSize: Size(170, 130),
+          minimumSize: Size(200, 200),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         ),
         onPressed: () {
@@ -93,9 +93,13 @@ class CompendiumButtonState extends State<CompendiumButton> {
           children: [
             Icon(widget.icon, size: 35, color: Color(0xFF6B4E24)),
             SizedBox(height: 10),
-            Text(
-              widget.label.toUpperCase(),
-              style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),
+            FittedBox(
+              child: Text(
+                widget.label.toUpperCase(),
+                softWrap: false,
+                maxLines: 1,
+                style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),
+              ),
             ),
           ],
         ),
