@@ -472,6 +472,9 @@ class _RaceSelectorState extends State<RaceSelector> {
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: ElevatedButton(
                   onPressed: () async {
+                    for (var j in raceLanguages!) {
+                      languages.add(j);
+                    }
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => SelectClass()),
@@ -1346,13 +1349,19 @@ class statsPageState extends State<statsPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text("Now it is time for you to roll for your stats"),
+                Text(
+                  "Now it is time for you to roll for your stats",
+                  style: TextStyle(fontSize: 20),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Roll a 20 sided dice for each of the stats below, and then enter the number in the Box",
                 ),
                 SizedBox(height: 16.0),
-                Text("Strength"),
+                Text(
+                  "Strength",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Strength measures bodily power, athletic training, and the extent to which you can exert raw physical forces.",
@@ -1391,11 +1400,25 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $strbonus = $strTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$strbonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$strTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 16.0),
-                Text("Dexterity"),
+                Text(
+                  "Dexterity",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text("Dexterity measures agility, reflexes, and balance."),
                 SizedBox(height: 8.0),
@@ -1432,11 +1455,25 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $dexbonus = $dexTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$dexbonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$dexTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 16.0),
-                Text("Constitution"),
+                Text(
+                  "Constitution",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Constitiution measures health, stamina, and vital force.",
@@ -1475,11 +1512,25 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $conbonus = $conTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$conbonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$conTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 16.0),
-                Text("Intelligence"),
+                Text(
+                  "Intelligence",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Intelligence measures mental acuity, accuracy of recall, and the ability to reason.",
@@ -1518,11 +1569,25 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $intbonus = $intTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$intbonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$intTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 16.0),
-                Text("Wisdom"),
+                Text(
+                  "Wisdom",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Wisdom relfects how attuned you are to the world around you and represents perceptiveness and intuition.",
@@ -1560,11 +1625,26 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $wisbonus = $wisTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$wisbonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$wisTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
+                    //Text(' +  $wisbonus = $wisTotal'),
                   ],
                 ),
                 SizedBox(height: 16.0),
-                Text("Charisma"),
+                Text(
+                  "Charisma",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 8.0),
                 Text(
                   "Charisma measures your ability to interact effectively with others. it includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.",
@@ -1603,7 +1683,18 @@ class statsPageState extends State<statsPage> {
                         },
                       ),
                     ),
-                    Text(' +  $chabonus = $chaTotal'),
+                    Row(
+                      children: [
+                        SizedBox(width: 32),
+                        Text("+", style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$chabonus', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('=', style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 32),
+                        Text('$chaTotal', style: TextStyle(fontSize: 20)),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 50.0),
