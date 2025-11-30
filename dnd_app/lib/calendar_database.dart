@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 
 class CalendarEvent {
   int? id;
+  String? username;
 
   /// Store only the date portion (year-month-day)
   DateTime date;
@@ -16,6 +17,7 @@ class CalendarEvent {
 
   CalendarEvent({
     this.id,
+    required this.username,
     required this.date,
     required this.time,
     required this.attendees,
@@ -31,6 +33,7 @@ class CalendarEvent {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'username': username,
       'date': _yyyyMmDd(date), // 'YYYY-MM-DD'
       'time': time, // 'HH:MM' 24h string
       'attendees': jsonEncode(attendees),
@@ -49,6 +52,7 @@ class CalendarEvent {
 
     return CalendarEvent(
       id: (map['id'] as num?)?.toInt(),
+      username: map['username'] ?? '',
       date: parsedDate,
       time: map['time'] as String, // 'HH:MM'
       attendees: people,
@@ -77,9 +81,11 @@ class CalendarDatabase {
     await db.execute('''
       CREATE TABLE calendar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
         date TEXT NOT NULL,                  -- 'YYYY-MM-DD'
         time TEXT NOT NULL,                  -- 'HH:MM' 24h
-        attendees TEXT NOT NULL DEFAULT '[]' -- JSON array of strings
+        attendees TEXT NOT NULL DEFAULT '[]', -- JSON array of strings
+        FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
       );
     ''');
 
@@ -99,6 +105,17 @@ class CalendarDatabase {
   Future<List<CalendarEvent>> getAllEvents() async {
     final db = await instance.database;
     final result = await db.query('calendar', orderBy: 'date ASC, time ASC');
+    return result.map((json) => CalendarEvent.fromMap(json)).toList();
+  }
+
+  Future<List<CalendarEvent>> getEventsByUserName(String username) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'calendar',
+      where: 'username = ?',
+      whereArgs: [username],
+      orderBy: 'date ASC, time ASC'
+    );
     return result.map((json) => CalendarEvent.fromMap(json)).toList();
   }
 
@@ -142,6 +159,16 @@ class CalendarDatabase {
   Future<int> deleteEvent(int eventId) async {
     final db = await instance.database;
     return db.delete('calendar', where: 'id = ?', whereArgs: [eventId]);
+  }
+
+  Future<int> deleteEventByDateTime(DateTime date, String time) async {
+    final db = await instance.database;
+    final yyyyMmDd = CalendarEvent._yyyyMmDd(date);
+    return db.delete(
+      'calendar',
+      where: 'date = ? AND time = ?',
+      whereArgs: [yyyyMmDd, time],
+    );
   }
 
   Future<void> close() async {

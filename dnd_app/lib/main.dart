@@ -1,19 +1,25 @@
+import 'package:dnd_app/registration.dart';
 import 'package:flutter/material.dart';
-
-// Imports for other screens
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:dnd_app/screens/friends.dart';
 import 'package:dnd_app/screens/characters.dart';
 import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
+import 'package:dnd_app/user_database.dart';
+import 'login.dart';
 
 void main() async {
+  // Initialize sqflite for different platforms if needed
+  //sqfliteFfiInit();
+  // databaseFactory = databaseFactoryFfi;
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -40,41 +46,81 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black,
         ),
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String username;
+
+  const HomePage({super.key, required this.username});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  // Store the user for constant use across the app
+  User? user;
+
+  // TODO: Get the user's upcoming sessions
+
+  late final u = widget.username;
   // Pages list for navigation
-  List<Map<String, dynamic>> pages = [
-    {'title': 'Characters', 'icon': Icons.add, 'screen': CharacterPage()},
-    {'title': 'Compendium', 'icon': Icons.shield},
-    {'title': 'Friends', 'icon': Icons.people, 'screen': FriendsPage()},
-    {'title': 'Sessions', 'icon': Icons.calendar_month},
-  ];
+  late List<Map<String, dynamic>> pages;
+
+  Future<void> loadUser() async {
+    user = await UserDatabase.instance.getUserByUsername(widget.username);
+    pages = [
+      {
+        'title': 'Characters',
+        'icon': Icons.add,
+        'screen': CharacterPage(thisUsername: u, userId: user?.id),
+      },
+      {'title': 'Compendium', 'icon': Icons.shield, 'screen': Compendium()},
+      {
+        'title': 'Friends',
+        'icon': Icons.people,
+        'screen': FriendsPage(userId: user?.id),
+      },
+      {
+        'title': 'Sessions',
+        'icon': Icons.calendar_month,
+        'screen': SessionsPage(username: u),
+      },
+    ];
+
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
+    loadUser();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Building the homepage
     return Scaffold(
       appBar: AppBar(
         title: Text("D&D Companion App"),
         actions: [
-          IconButton(onPressed: null, icon: Icon(Icons.account_circle)),
-          IconButton(onPressed: null, icon: Icon(Icons.logout)),
+          IconButton(
+            onPressed: null,
+            icon: Icon(Icons.account_circle),
+            tooltip: widget.username,
+          ),
+          IconButton(
+            onPressed: () {
+              // Logout functionality
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+            icon: Icon(Icons.logout),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -82,196 +128,60 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(height: 50),
-            Text("Welcome, User", style: TextStyle(fontSize: 30)),
-            // Idea: have the title change greetings based on the time of day
+            // Future builder to get snapshot of user data
+            Text(
+              style: TextStyle(fontSize: 30),
+              "Welcome, ${user?.displayName ?? user?.firstName}",
+            ),
             SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CharacterPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[0]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[0]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Compendium()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[1]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[1]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              children: [_buildMenuButton(0), _buildMenuButton(1)],
             ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => FriendsPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[2]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[2]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(170, 130),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SessionsPage()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        pages[3]['icon'],
-                        size: 35,
-                        color: Color(0xFF6B4E24),
-                      ),
-                      Text(
-                        pages[3]['title'],
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFF6B4E24),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              children: [_buildMenuButton(2), _buildMenuButton(3)],
             ),
             SizedBox(height: 40),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  "Recent Notifications",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
-            // A Container that holds any notifications the user has missed
-            // Container(
-            //   padding: EdgeInsets.only(left: 20, right: 20, top: 10),
-            //   height: 300,
-            //   child: ListView.builder(
-            //     itemCount: 10,
-            //     itemBuilder: (context, index){
-            //       return Card(
-            //         shape: RoundedRectangleBorder(
-            //           borderRadius: BorderRadius.zero,
-            //         ),
-            //         child: Row(
-            //           children: [
-            //             Container(
-            //               width: 10,
-            //               height: 40,
-            //               color: Colors.lightBlue,
-            //             ),
-            //             Column(
-            //               children: [
-            //                 Text("New Charcter added!"),
-            //                 Text("jim239 created a new character!")
-            //               ],
-            //             )
-            //
-            //           ],
-            //
-            //         ),
-            //       );
-            //     }
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: Padding(
+            //     padding: EdgeInsets.only(left: 10),
+            //     child: Text(
+            //       "Upcoming Sessions",
+            //       style: TextStyle(fontSize: 30),
+            //     ),
             //   ),
             // ),
-            SizedBox(height: 40),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 10),
-                child: Text(
-                  "Upcoming Sessions",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMenuButton(int index) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(170, 130),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      ),
+      onPressed: () {
+        if (pages[index]['screen'] != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => pages[index]['screen']),
+          );
+        }
+      },
+      child: Column(
+        children: [
+          Icon(pages[index]['icon'], size: 35, color: Color(0xFF6B4E24)),
+          Text(
+            pages[index]['title'],
+            style: TextStyle(fontSize: 20, color: Color(0xFF6B4E24)),
+          ),
+        ],
       ),
     );
   }

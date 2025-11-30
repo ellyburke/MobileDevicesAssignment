@@ -1,7 +1,6 @@
-// Sessions screen
-
 import 'package:flutter/material.dart';
-import 'package:dnd_app/calendarDatabase.dart';
+import 'package:dnd_app/calendar_database.dart';
+import 'package:dnd_app/user_database.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // For handling local notifications
 import 'dart:async'; // For countdown functionality
@@ -20,7 +19,8 @@ Future<void> _ensureTz() async {
 }
 
 class SessionsPage extends StatefulWidget {
-  const SessionsPage({super.key});
+  final String? username;
+  const SessionsPage({super.key, required this.username});
 
   @override
   State<SessionsPage> createState() => _SessionsPageState();
@@ -28,6 +28,7 @@ class SessionsPage extends StatefulWidget {
 
 class _SessionsPageState extends State<SessionsPage> {
   //bool _tzReady = false;
+  late final String? u = widget.username;
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -46,16 +47,19 @@ class _SessionsPageState extends State<SessionsPage> {
     12: 'Dec',
   };
 
-  late Future<List<CalendarEvent>> eventsList = CalendarDatabase.instance
-      .getAllEvents();
+  // Split sessions (passed and upcoming)
+  List<CalendarEvent> eventsList = [];
+
+  // Save another instance to handle the list flattening
+  List<dynamic> flattenedList = [];
 
   late Future<void> _initialization;
 
   @override
   void initState() {
     super.initState();
-    eventsList = CalendarDatabase.instance.getAllEvents();
-
+    loadEvents();
+    flattenedList = flattenEventsList();
     _initialization = initializeNotifications();
   }
 
@@ -183,22 +187,69 @@ class _SessionsPageState extends State<SessionsPage> {
         payload:
             'Notification Payload', // Optional payload for notification taps
       );
+      /*
+      In case we want to delete the session as soon as the user gets the notification
+      await CalendarDatabase.instance.deleteEventByDateTime(date, time);
+      final refreshedList = CalendarDatabase.instance.getAllEvents();
+
+      setState(() {
+        eventsList = refreshedList;
+      });
+       */
     });
+  }
+
+  Future<void> loadEvents() async {
+    // Reload events
+    final list = await CalendarDatabase.instance.getEventsByUserName(u!);
+
+    setState(() {
+      eventsList = list;
+      flattenedList = flattenEventsList();
+    });
+  }
+
+  List<dynamic> flattenEventsList() {
+    // Function to flatten list to get the upcoming and past sessions headers
+
+    // Map first
+    Map<String, List<CalendarEvent>> map = {
+      'Upcoming Sessions': [],
+      'Past Sessions': [],
+    };
+    for (CalendarEvent e in eventsList) {
+      if (daysUntil(e) < 0) {
+        map['Past Sessions']?.add(e);
+      } else {
+        map['Upcoming Sessions']?.add(e);
+      }
+    }
+
+    List<dynamic> list = []; // First add the Upcoming header
+
+    final keys = map.keys.toList();
+
+    for (String key in keys) {
+      list.add(key); // Section header
+      list.addAll(map[key]!); // Section items
+    }
+
+    return list;
   }
 
   // Adds new session
   void addSession(CalendarEvent event) async {
     // Add session to the database
     final newEvent = CalendarEvent(
+      username: widget.username,
       date: event.date,
       time: event.time,
       attendees: event.attendees,
     );
     await CalendarDatabase.instance.insert(newEvent);
-    final refreshedList = CalendarDatabase.instance.getAllEvents();
 
     setState(() {
-      eventsList = refreshedList;
+      loadEvents();
     });
   }
 
@@ -214,7 +265,7 @@ class _SessionsPageState extends State<SessionsPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const NewSessionDialog();
+        return NewSessionDialog(username: u!);
       },
     );
     return result;
@@ -242,28 +293,13 @@ class _SessionsPageState extends State<SessionsPage> {
             ),
           );
         }
+
         return Scaffold(
-          appBar: AppBar(
-            title: Text("Sessions"),
-            actions: [
-              TextButton(
-                onPressed: () {},
-                child: Row(
-                  children: [
-                    Icon(Icons.add, color: Colors.black),
-                    SizedBox(width: 5),
-                    Text(
-                      "Add availability",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          appBar: AppBar(title: Text("Sessions")),
 
           body: Column(
             children: [
+              SizedBox(height: 12),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 30),
                 child: ElevatedButton(
@@ -275,10 +311,9 @@ class _SessionsPageState extends State<SessionsPage> {
                     // Show snackbars depending on status codes
                     if (event != null) {
                       addSession(event);
-
                       setState(() {
                         // Refresh list
-                        eventsList = CalendarDatabase.instance.getAllEvents();
+                        loadEvents();
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -299,171 +334,207 @@ class _SessionsPageState extends State<SessionsPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, color: Colors.black),
+                      Icon(Icons.calendar_month, color: Colors.black),
                       SizedBox(width: 5),
                       Text(
-                        "Create a new session",
+                        "Schedule a new session",
                         style: TextStyle(color: Colors.black),
                       ),
                     ],
                   ),
                 ),
               ),
-
-              FutureBuilder(
-                future: eventsList,
-                builder: (context, snapshot) {
-                  // While waiting for connection
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-
-                  // If error
-                  if (snapshot.hasError) {
-                    return Center(child: Text("Error has occured"));
-                  }
-
-                  // If there are no events in the database, return
-                  if (!snapshot.hasData) {
-                    return Center(child: Text("No events in the database:("));
-                  }
-
-                  // To make the data a list for itemCount
-                  final events = snapshot.data!;
-
-                  return Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        // Display each character one at a time
-                        final event = events[index];
-                        return Card(
-                          elevation: 4,
-                          shadowColor: Colors.black26,
-                          color: Colors.grey.shade50,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Header Row
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Session ${event.id}",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade600,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.15,
-                                            ),
-                                            blurRadius: 4,
-                                            offset: Offset(2, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        'in ${daysUntil(event)} '
-                                        '${daysUntil(event) == 1 ? 'day' : 'days'}',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.3,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                SizedBox(height: 10),
-
-                                // Date
-                                Text(
-                                  "${_monthsMap[event.date.month]} ${event.date.day}, ${event.date.year}",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-
-                                SizedBox(height: 4),
-
-                                // Time
-                                Text(
-                                  "🕒  Time: ${event.time}",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-
-                                // Attendees
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "👥  Attendees: ${event.attendees.join(', ')}",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        // Delete event
-                                        await CalendarDatabase.instance
-                                            .deleteEvent(event.id!);
-
-                                        // Refresh List
-                                        setState(() {
-                                          eventsList = CalendarDatabase.instance
-                                              .getAllEvents();
-                                        });
-                                      },
-                                      icon: Icon(Icons.delete),
-                                    ),
-                                  ],
-                                ),
-                              ],
+              SizedBox(height: 10),
+              if (eventsList.isEmpty)
+                Center(child: Text("No Sessions Scheduled"))
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: flattenedList.length,
+                    itemBuilder: (context, index) {
+                      final item = flattenedList[index];
+                      if (item is String) {
+                        return Padding(
+                          padding: EdgeInsets.only(left: 12),
+                          child: Text(
+                            item,
+                            style: TextStyle(
+                              fontSize: 35,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         );
-                      },
-                    ),
-                  );
-                },
-              ),
+                      } else {
+                        return _buildEventCard(item);
+                      }
+                    },
+                  ),
+                ),
+
+              // Expanded(
+              //     child: SingleChildScrollView(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           // ======================
+              //           // UPCOMING SESSIONS LIST
+              //           // ======================
+              //           Padding(
+              //             padding: EdgeInsets.only(left: 10),
+              //             child: Text(
+              //               "Upcoming Sessions",
+              //               style: TextStyle(
+              //                 fontSize: 30,
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //           ),
+              //           const SizedBox(height: 10),
+              //           if (upcomingEvents.isEmpty)
+              //             Center(
+              //               child: Text("No upcoming sessions scheduled"),
+              //             )
+              //           else
+              //             ...upcomingEvents.map(_buildEventCard).toList(),
+              //
+              //           const SizedBox(height: 30),
+              //
+              //           // ======================
+              //           // PAST SESSIONS LIST
+              //           // ======================
+              //           if (pastEvents.isNotEmpty)
+              //             Padding(
+              //               padding: EdgeInsets.only(left: 10),
+              //               child: Text(
+              //                 "Past Sessions",
+              //                 style: TextStyle(
+              //                   fontSize: 30,
+              //                   fontWeight: FontWeight.bold,
+              //                 ),
+              //               ),
+              //             ),
+              //
+              //           const SizedBox(height: 10),
+              //
+              //           // ======================
+              //           // PAST SESSIONS LIST
+              //           // ======================
+              //           ...pastEvents.map(_buildEventCard).toList(),
+              //         ],
+              //       ),
+              //     ),
+              // )
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEventCard(CalendarEvent event) {
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black26,
+      color: Colors.grey.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Session ${event.id}",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: daysUntil(event) < 0
+                        ? Colors.red.shade600
+                        : daysUntil(event) == 0
+                        ? Colors.green.shade600
+                        : Colors.blue.shade600,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 4,
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    daysUntil(event) == 0
+                        ? 'TODAY'
+                        : daysUntil(event) < 0
+                        ? 'PASSED'
+                        : 'in ${daysUntil(event)} '
+                              '${daysUntil(event) == 1 ? 'day' : 'days'}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 10),
+
+            // Date
+            Text(
+              "${_monthsMap[event.date.month]} ${event.date.day}, ${event.date.year}",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            // Time
+            Text(
+              "🕒  Time: ${event.time}",
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
+            ),
+
+            // Attendees
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "👥  Attendees: ${event.attendees.join(', ')}",
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    // Delete event
+                    await CalendarDatabase.instance.deleteEvent(event.id!);
+                    // Refresh List
+                    setState(() {
+                      loadEvents();
+                    });
+                  },
+                  icon: Icon(Icons.delete),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -473,20 +544,30 @@ class _SessionsPageState extends State<SessionsPage> {
 // ==================================
 
 class NewSessionDialog extends StatefulWidget {
-  const NewSessionDialog({super.key});
+  final String? username;
+  const NewSessionDialog({super.key, required this.username});
 
   @override
   State<StatefulWidget> createState() => _NewSessionDialogState();
 }
 
 class _NewSessionDialogState extends State<NewSessionDialog> {
+  late final String? u = widget.username;
+
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? errorMessage;
 
   // Controller for attendees and attendee list
   final _attendeeController = TextEditingController();
-  List<String> _attendees = [];
+  final List<String> _attendees = [];
+
+  // To distinct between successfully added attendee or no
+  bool valid = false;
+  bool notValid = false;
+
+  // To tell user if attendee has already been added
+  String? helperText;
 
   void _pickDate() async {
     final date = await showDatePicker(
@@ -542,14 +623,40 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
     }
   }
 
-  void _addAttendee() {
+  Future<void> checkForAttendee(String attendeeValue) async {
+    // Function that checks to see if a user is in the database
+
+    helperText = null;
+    notValid = false;
+    valid = false;
+
+    // Access database to see if user is in there
+    final result = await UserDatabase.instance.getUserByUsername(attendeeValue);
+
+    setState(() {
+      if (result == null) {
+        notValid = true;
+        valid = false;
+      } else {
+        notValid = false;
+        valid = true;
+      }
+    });
+  }
+
+  void _addAttendee() async {
+    // Only add attendees if they are in the database and have not already been added
     final attendee = _attendeeController.text.trim();
-    if (attendee.isNotEmpty) {
-      setState(() {
+
+    setState(() {
+      if (_attendees.contains(attendee)) {
+        // If attendee is already added to the list
+        helperText = 'Attendee already added';
+      } else {
         _attendees.add(attendee);
         _attendeeController.clear();
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -575,7 +682,8 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
               child: const Text("Pick Date"),
             ),
             Text(
-              "Selected Date: ${_selectedDate?.year}-${_selectedDate?.month}-${_selectedDate?.day}",
+              "Selected Date: ${_selectedDate?.year ?? 'YYYY'}-"
+              "${_selectedDate?.month ?? 'MM'}-${_selectedDate?.day ?? 'DD'}",
             ),
 
             const SizedBox(height: 15),
@@ -584,7 +692,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
               child: const Text("Pick Time"),
             ),
 
-            Text("Selected Time: ${_selectedTime?.format(context)}"),
+            Text("Selected Time: ${_selectedTime?.format(context) ?? 'HH:MM'}"),
             if (errorMessage != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
@@ -599,16 +707,28 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
                 Expanded(
                   child: TextFormField(
                     controller: _attendeeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Add Attendee',
-                      hintText: 'ex. John',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: 'Add Attendee By Username',
+                      hintText: 'ex. user123',
+                      border: const OutlineInputBorder(),
+                      errorText: notValid ? 'User not found' : null,
+                      helperText: helperText,
+                      helperStyle: TextStyle(color: Colors.green.shade400),
+                      suffixIcon: valid
+                          ? Icon(Icons.check, color: Colors.green)
+                          : notValid
+                          ? Icon(Icons.close, color: Colors.red)
+                          : null,
                     ),
+                    onChanged: (value) {
+                      // Check the database if the user exists, show icon to indicate
+                      checkForAttendee(value);
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: _addAttendee,
+                  onPressed: valid ? _addAttendee : null,
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(12),
@@ -617,7 +737,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 5),
             Text("Added Attendees: ${_attendees.join(', ')}"),
             const SizedBox(height: 15),
             Row(
@@ -643,6 +763,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
                           '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
                       print(timeStr);
                       final event = CalendarEvent(
+                        username: u,
                         date: _selectedDate!,
                         time: timeStr,
                         attendees: _attendees,

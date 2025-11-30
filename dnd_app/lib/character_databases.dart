@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'backEnd.dart';
+import 'character_class.dart';
 
 class CharacterDatabase {
   static final CharacterDatabase instance = CharacterDatabase._init();
@@ -18,17 +18,14 @@ class CharacterDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
     CREATE TABLE characters (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT,
       name TEXT,
       race TEXT,
       background TEXT,
@@ -46,18 +43,19 @@ class CharacterDatabase {
       initiative INTEGER,
       speed INTEGER,
       passive_perception INTEGER,
-      char_class TEXT,
+      size TEXT,
+      Class TEXT,
       skills TEXT,
       features TEXT,
       traits TEXT,
-      class_features TEXT,
       equipment TEXT,
       inventory TEXT,
-      proficiencies TEXT,
+      proficiencies INT,
       languages TEXT,
       spells TEXT,
       spell_casting_ability TEXT,
-      spell_slots TEXT
+      spell_slots TEXT,
+      FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
     )
     ''');
   }
@@ -71,6 +69,16 @@ class CharacterDatabase {
     final db = await instance.database;
     final result = await db.query('characters');
     return result.map((map) => Character.fromMap(map)).toList();
+  }
+
+  Future<List<Character>> getAllCharactersByUsername(String username) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'characters',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+    return result.map((json) => Character.fromMap(json)).toList();
   }
 
   Future<int> update(Character character) async {
