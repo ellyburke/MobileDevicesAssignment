@@ -12,7 +12,7 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
-  // Mian friends list
+  // Main friends list
   List<User> friendsList = [];
 
   // Filtered data

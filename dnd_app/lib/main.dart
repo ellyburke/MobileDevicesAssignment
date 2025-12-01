@@ -8,11 +8,13 @@ import 'package:dnd_app/screens/sessions.dart';
 import 'package:dnd_app/screens/compendium/compendium.dart';
 import 'package:dnd_app/user_database.dart';
 import 'login.dart';
+import 'profile.dart';
+
 
 void main() async {
   // Initialize sqflite for different platforms if needed
-  //sqfliteFfiInit();
-  // databaseFactory = databaseFactoryFfi;
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
   runApp(MyApp());
 }
@@ -106,21 +108,21 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text("D&D Companion App"),
         actions: [
-          IconButton(
-            onPressed: null,
-            icon: Icon(Icons.account_circle),
-            tooltip: widget.username,
-          ),
-          IconButton(
-            onPressed: () {
-              // Logout functionality
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-            icon: Icon(Icons.logout),
-          ),
+IconButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(
+          username: widget.username,
+          onBack: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  },
+  icon: Icon(Icons.account_circle),
+  tooltip: widget.username,
+),
         ],
       ),
       body: SingleChildScrollView(
