@@ -47,9 +47,8 @@ class ContentPageState extends State<ContentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-            color: Colors.white,),
-            title: Text(widget.endpoint.toUpperCase())
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(widget.endpoint.toUpperCase()),
       ),
       body: FutureBuilder<Content>(
         future: futureContent,
@@ -151,14 +150,18 @@ class ContentPageState extends State<ContentPage> {
               return FutureBuilder(
                 future: fetchData(race.traits![index]["url"]),
                 builder: (context, snapshot) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      subHeading(snapshot.data!["name"]),
-                      Text("${snapshot.data!["desc"].join("\n")}"),
-                      SizedBox(height: 10),
-                    ],
-                  );
+                  if (snapshot.hasData) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        subHeading(snapshot.data!["name"]),
+                        Text("${snapshot.data!["desc"].join("\n")}"),
+                        SizedBox(height: 10),
+                      ],
+                    );
+                  } else {
+                    return CircularProgressIndicator(color: Color(0xFF1E1B18));
+                  }
                 },
               );
             },
@@ -350,7 +353,9 @@ class ContentPageState extends State<ContentPage> {
                           },
                         );
                       } else {
-                        return CircularProgressIndicator();
+                        return CircularProgressIndicator(
+                          color: Color(0xFF1E1B18),
+                        );
                       }
                     },
                   ),
@@ -999,7 +1004,7 @@ class ContentPageState extends State<ContentPage> {
             },
           );
         } else {
-          return CircularProgressIndicator();
+          return CircularProgressIndicator(color: Color(0xFF1E1B18));
         }
       },
     );
