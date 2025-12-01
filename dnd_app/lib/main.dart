@@ -1,4 +1,4 @@
-import 'package:dnd_app/registration.dart';
+import 'package:dnd_app/user_profile/registration.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
@@ -9,7 +9,6 @@ import 'package:dnd_app/screens/compendium/compendium.dart';
 import 'package:dnd_app/databases/user_database.dart';
 import 'package:dnd_app/user_profile/login.dart';
 import 'package:dnd_app/user_profile/profile.dart';
-
 
 void main() async {
   // Initialize sqflite for different platforms if needed

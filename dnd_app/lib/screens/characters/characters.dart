@@ -1,12 +1,12 @@
 // Characters Screen
 
-import 'package:dnd_app/screens/single_character.dart';
+import 'package:dnd_app/screens/characters/single_character.dart';
 import 'package:flutter/material.dart';
-import 'package:dnd_app/screens/new_character_form.dart';
+import 'package:dnd_app/screens/characters/new_character_form.dart';
 
 //  Database imports
-import 'package:dnd_app/character_databases.dart';
-import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/databases/character_databases.dart';
+import 'package:dnd_app/databases/user_database.dart';
 
 // Model imports
 import 'package:dnd_app/character_class.dart';
@@ -26,7 +26,8 @@ class _CharacterPageState extends State<CharacterPage> {
   late final id = widget.userId;
   late final u = widget.thisUsername;
   // Get the list of characters from the database
-  late Future<List<Character>> characterList = CharacterDatabase.instance.getAllCharactersByUsername(u);
+  late Future<List<Character>> characterList = CharacterDatabase.instance
+      .getAllCharactersByUsername(u);
 
   // Store a list of friends usernames and all characters
   late Future<List<Character>> allCharacters = CharacterDatabase.instance
