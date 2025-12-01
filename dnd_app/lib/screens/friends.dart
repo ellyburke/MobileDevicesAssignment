@@ -1,3 +1,7 @@
+/*
+This page is where users can add and view their friends
+ */
+
 import 'package:dnd_app/databases/user_database.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
@@ -15,7 +19,7 @@ class _FriendsPageState extends State<FriendsPage> {
   // Main friends list
   List<User> friendsList = [];
 
-  // Filtered data
+  // For filtering upon search
   Map<String, List<User>> filteredMap = {};
   List<dynamic> filteredList = [];
 
@@ -30,6 +34,7 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   Future<void> loadFriends() async {
+    // This function re-loads the friends list
     setState(() => _loading = true);
 
     final list = await UserDatabase.instance.getFriends(widget.userId!);
@@ -42,19 +47,18 @@ class _FriendsPageState extends State<FriendsPage> {
     });
   }
 
-  // ============================
-  // MAP INTO A→Z SECTIONS
-  // ============================
   Map<String, List<User>> mapData(List<User> friends, {String text = ''}) {
+    // This function maps the data into A->Z sections
     final query = text.trim().toLowerCase();
     Map<String, List<User>> newMap = {};
 
     for (User friend in friends) {
+      // If the keywords match to either the display name, first or last name
       final display = (friend.displayName ?? friend.firstName).toLowerCase();
       final first = friend.firstName.toLowerCase();
       final user = friend.username.toLowerCase();
 
-      // FILTER
+      // Filter
       if (query.isNotEmpty) {
         final matches =
             display.contains(query) ||
@@ -63,7 +67,7 @@ class _FriendsPageState extends State<FriendsPage> {
         if (!matches) continue;
       }
 
-      // SECTION LETTER
+      // Section letter
       String firstLetter = (friend.displayName ?? friend.firstName)[0]
           .toUpperCase();
 
@@ -109,19 +113,48 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   Future<void> removeFriend(int friendId) async {
-    await UserDatabase.instance.removeFriend(widget.userId!, friendId);
-    await loadFriends();
+    final removeFriend = await _confirmRemove();
+    if (removeFriend){
+      await UserDatabase.instance.removeFriend(widget.userId!, friendId);
+      await loadFriends();
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Friend removed")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Friend removed Successfully")));
+    }
+  }
+
+  Future<bool> _confirmRemove() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove Friend'),
+        content: Text('Are you sure you want to remove this user as your friend?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: Text('No', style: TextStyle(color: Color(0xFF6B4E24))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: Text('Yes', style: TextStyle(color: Color(0xFFA23E2E))),
+          ),
+        ],
+      ),
+    ) ?? false; // if dialog is dismissed
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Friends"),
+        iconTheme: const IconThemeData(
+          color: Colors.white,),
+          title: const Text("Friends"),
         actions: [
           ElevatedButton(
             onPressed: addFriend,
@@ -160,7 +193,9 @@ class _FriendsPageState extends State<FriendsPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("You have no friends :("),
+                          const Text("You have no friends :(",
+                            style: TextStyle(fontSize: 15),
+                          ),
                           ElevatedButton(
                             onPressed: addFriend,
                             child: const Row(

@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dnd_app/character_class.dart';
 import 'package:http/http.dart' as http;
-import 'package:dnd_app/screens/characters.dart';
+import 'package:dnd_app/screens/characters/characters.dart';
 
 import 'package:dnd_app/screens/characters/new_character_form.dart';
 

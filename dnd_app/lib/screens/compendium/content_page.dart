@@ -46,7 +46,11 @@ class ContentPageState extends State<ContentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.endpoint.toUpperCase())),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+            color: Colors.white,),
+            title: Text(widget.endpoint.toUpperCase())
+      ),
       body: FutureBuilder<Content>(
         future: futureContent,
         builder: (context, snapshot) {

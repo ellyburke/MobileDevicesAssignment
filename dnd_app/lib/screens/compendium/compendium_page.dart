@@ -63,7 +63,9 @@ class CompendiumPageState extends State<CompendiumPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Compendium Page"),
+        iconTheme: const IconThemeData(
+          color: Colors.white,),
+          title: Text("Compendium Page"),
         backgroundColor: Color(0xFFA23E2E),
       ),
       body: Container(

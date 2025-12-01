@@ -1,12 +1,12 @@
 // Characters Screen
 
-import 'package:dnd_app/screens/single_character.dart';
+import 'package:dnd_app/screens/characters/single_character.dart';
 import 'package:flutter/material.dart';
-import 'package:dnd_app/screens/new_character_form.dart';
+import 'package:dnd_app/screens/characters/new_character_form.dart';
 
 //  Database imports
-import 'package:dnd_app/character_databases.dart';
-import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/databases/character_databases.dart';
+import 'package:dnd_app/databases/user_database.dart';
 
 // Model imports
 import 'package:dnd_app/character_class.dart';
@@ -77,7 +77,7 @@ class _CharacterPageState extends State<CharacterPage> {
                 MaterialPageRoute(builder: (context) => HomePage(username: u)),
               );
             },
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back, color: Colors.white,),
           ),
           actions: [
             TextButton(
@@ -176,7 +176,9 @@ class _CharacterPageState extends State<CharacterPage> {
 
                 // If there are no characters in the database, return
                 if (characters.isEmpty) {
-                  return Center(child: Text("You have no characters yet :("));
+                  return Center(child: Text("You have no characters yet :(",
+                      style: TextStyle(fontSize: 15),
+                  ));
                 }
 
                 return ListView.builder(
@@ -194,7 +196,9 @@ class _CharacterPageState extends State<CharacterPage> {
             // SECOND TAB
             // ===============
             if (friendsCharacters.isEmpty)
-              Center(child: Text("Your friends have no characters yet :("))
+              Center(child: Text("Your friends have no characters yet :(",
+                  style: TextStyle(fontSize: 15),
+              ))
             else
               ListView.builder(
                 itemCount: friendsCharacters.length,

@@ -35,7 +35,11 @@ class CompendiumState extends State<Compendium> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Compendium")),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+            color: Colors.white,),
+            title: Text("Compendium")
+      ),
       body: Expanded(
         child: GridView.count(
           primary: false,

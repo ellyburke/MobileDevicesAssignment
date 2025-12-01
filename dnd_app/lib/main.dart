@@ -1,4 +1,4 @@
-import 'package:dnd_app/registration.dart';
+import 'package:dnd_app/user_profile/registration.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,8 +13,8 @@ import 'package:dnd_app/user_profile/profile.dart';
 
 void main() async {
   // Initialize sqflite for different platforms if needed
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
+  // sqfliteFfiInit();
+  // databaseFactory = databaseFactoryFfi;
 
   runApp(MyApp());
 }
@@ -66,14 +66,13 @@ class _HomePageState extends State<HomePage> {
   // Store the user for constant use across the app
   User? user;
 
-  // TODO: Get the user's upcoming sessions
-
   late final u = widget.username;
   // Pages list for navigation
   late List<Map<String, dynamic>> pages;
 
   Future<void> loadUser() async {
     user = await UserDatabase.instance.getUserByUsername(widget.username);
+    // Naivagtion pages
     pages = [
       {
         'title': 'Characters',
@@ -132,6 +131,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // To prevent back button on homepage
         title: Text("D&D Companion App"),
         actions: [
           IconButton(
@@ -146,12 +146,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-            icon: Icon(Icons.account_circle),
+            icon: Icon(Icons.account_circle, color: Colors.white,),
             tooltip: widget.username,
           ),
           IconButton(
             onPressed: _logout,
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white,),
             tooltip: 'Logout',
           ),
         ],
@@ -177,16 +177,6 @@ class _HomePageState extends State<HomePage> {
               children: [_buildMenuButton(2), _buildMenuButton(3)],
             ),
             SizedBox(height: 40),
-            // Align(
-            //   alignment: Alignment.centerLeft,
-            //   child: Padding(
-            //     padding: EdgeInsets.only(left: 10),
-            //     child: Text(
-            //       "Upcoming Sessions",
-            //       style: TextStyle(fontSize: 30),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

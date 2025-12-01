@@ -1,3 +1,8 @@
+/*
+This page is where users can schedule sessions. Notifications are included.
+Notifications will appear at the start time of a session
+ */
+
 import 'package:flutter/material.dart';
 import 'package:dnd_app/databases/calendar_database.dart';
 import 'package:dnd_app/databases/user_database.dart';
@@ -32,6 +37,7 @@ class _SessionsPageState extends State<SessionsPage> {
 
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
+  // To map the month numbers to words for displaying on the card
   final Map<int, String> _monthsMap = {
     1: 'Jan',
     2: 'Feb',
@@ -48,10 +54,10 @@ class _SessionsPageState extends State<SessionsPage> {
   };
 
   // Split sessions (passed and upcoming)
-  List<CalendarEvent> eventsList = [];
+  List<CalendarEvent> _eventsList = [];
 
   // Save another instance to handle the list flattening
-  List<dynamic> flattenedList = [];
+  List<dynamic> _flattenedList = [];
 
   late Future<void> _initialization;
 
@@ -59,10 +65,13 @@ class _SessionsPageState extends State<SessionsPage> {
   void initState() {
     super.initState();
     loadEvents();
-    flattenedList = flattenEventsList();
+    _flattenedList = _flattenEventsList();
     _initialization = initializeNotifications();
   }
 
+  // ====================
+  // NOTIFICATIONS
+  // ====================
   Future<void> initializeNotifications() async {
     // Initialize the notifications plugin
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -118,7 +127,6 @@ class _SessionsPageState extends State<SessionsPage> {
   // Handle tap on notification
   Future<void> onSelectNotification(String? payload) async {
     if (payload != null) {
-      // print('Notification payload: $payload');
     }
   }
 
@@ -137,9 +145,6 @@ class _SessionsPageState extends State<SessionsPage> {
     _ensureTz();
     final hour = int.parse(time.substring(0, 2));
     final minute = int.parse(time.substring(3, 5));
-    print(hour);
-    print(minute);
-    print(tz.TZDateTime.now(tz.local));
     var scheduled = tz.TZDateTime(
       tz.local,
       date.year,
@@ -148,14 +153,11 @@ class _SessionsPageState extends State<SessionsPage> {
       hour,
       minute,
     );
-    print(scheduled);
     final now = tz.TZDateTime.now(tz.local);
     if (scheduled.isBefore(now.add(const Duration(seconds: 5)))) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     var difference = scheduled.difference(now);
-    print(difference);
-    print(difference.inSeconds);
 
     // Delay the notification for 3 seconds
     await Future.delayed(Duration(seconds: difference.inSeconds), () async {
@@ -199,17 +201,20 @@ class _SessionsPageState extends State<SessionsPage> {
     });
   }
 
+  // ======================
+  // SESSIONS SCHEDULING
+  // ======================
   Future<void> loadEvents() async {
-    // Reload events
+    // This function re-loads the session list
     final list = await CalendarDatabase.instance.getEventsByUserName(u!);
 
     setState(() {
-      eventsList = list;
-      flattenedList = flattenEventsList();
+      _eventsList = list;
+      _flattenedList = _flattenEventsList();
     });
   }
 
-  List<dynamic> flattenEventsList() {
+  List<dynamic> _flattenEventsList() {
     // Function to flatten list to get the upcoming and past sessions headers
 
     // Map first
@@ -217,29 +222,33 @@ class _SessionsPageState extends State<SessionsPage> {
       'Upcoming Sessions': [],
       'Past Sessions': [],
     };
-    for (CalendarEvent e in eventsList) {
-      if (daysUntil(e) < 0) {
+    // Section off the calendar events
+    for (CalendarEvent e in _eventsList) {
+      if (_daysUntil(e) < 0) {
         map['Past Sessions']?.add(e);
       } else {
         map['Upcoming Sessions']?.add(e);
       }
     }
 
-    List<dynamic> list = []; // First add the Upcoming header
+    List<dynamic> list = [];
 
     final keys = map.keys.toList();
 
     for (String key in keys) {
-      list.add(key); // Section header
-      list.addAll(map[key]!); // Section items
+      // Only add if there are sessions in the list
+      if ((map[key] ?? []).isNotEmpty){
+        list.add(key); // Section header
+        list.addAll(map[key]!); // Section items
+      }
+
     }
 
     return list;
   }
 
-  // Adds new session
-  void addSession(CalendarEvent event) async {
-    // Add session to the database
+  void _addSession(CalendarEvent event) async {
+    // This function adds a new session to the database
     final newEvent = CalendarEvent(
       username: widget.username,
       date: event.date,
@@ -253,7 +262,48 @@ class _SessionsPageState extends State<SessionsPage> {
     });
   }
 
-  int daysUntil(CalendarEvent event) {
+  void deleteSession(int id) async {
+    // Confirm delete first
+    final delete = await _confirmRemove();
+
+    if (delete){
+        await CalendarDatabase.instance.deleteEvent(id!);
+        loadEvents();
+
+        // If delete successful
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Session deleted Successfully!")));
+    }
+
+  }
+
+  Future<bool> _confirmRemove() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Session'),
+        content: Text('Are you sure you want to delete this session?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: Text('No', style: TextStyle(color: Color(0xFF6B4E24))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: Text('Yes', style: TextStyle(color: Color(0xFFA23E2E))),
+          ),
+        ],
+      ),
+    ) ?? false; // if dialog is dismissed
+  }
+
+  int _daysUntil(CalendarEvent event) {
+    // This function returns the number of days until a session
     final now = DateTime.now();
     final targetDate = event.date;
 
@@ -295,7 +345,11 @@ class _SessionsPageState extends State<SessionsPage> {
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text("Sessions")),
+          appBar: AppBar(
+            iconTheme: const IconThemeData(
+                color: Colors.white,),
+                title: Text("Sessions")
+          ),
 
           body: Column(
             children: [
@@ -310,7 +364,7 @@ class _SessionsPageState extends State<SessionsPage> {
 
                     // Show snackbars depending on status codes
                     if (event != null) {
-                      addSession(event);
+                      _addSession(event);
                       setState(() {
                         // Refresh list
                         loadEvents();
@@ -345,14 +399,18 @@ class _SessionsPageState extends State<SessionsPage> {
                 ),
               ),
               SizedBox(height: 10),
-              if (eventsList.isEmpty)
-                Center(child: Text("No Sessions Scheduled"))
+
+              // If there are no sessions
+              if (_eventsList.isEmpty)
+                Center(child: Text("No Sessions Scheduled",
+                    style: TextStyle(fontSize: 15),
+                ))
               else
                 Expanded(
                   child: ListView.builder(
-                    itemCount: flattenedList.length,
+                    itemCount: _flattenedList.length,
                     itemBuilder: (context, index) {
-                      final item = flattenedList[index];
+                      final item = _flattenedList[index];
                       if (item is String) {
                         return Padding(
                           padding: EdgeInsets.only(left: 12),
@@ -370,60 +428,6 @@ class _SessionsPageState extends State<SessionsPage> {
                     },
                   ),
                 ),
-
-              // Expanded(
-              //     child: SingleChildScrollView(
-              //       child: Column(
-              //         crossAxisAlignment: CrossAxisAlignment.start,
-              //         children: [
-              //           // ======================
-              //           // UPCOMING SESSIONS LIST
-              //           // ======================
-              //           Padding(
-              //             padding: EdgeInsets.only(left: 10),
-              //             child: Text(
-              //               "Upcoming Sessions",
-              //               style: TextStyle(
-              //                 fontSize: 30,
-              //                 fontWeight: FontWeight.bold,
-              //               ),
-              //             ),
-              //           ),
-              //           const SizedBox(height: 10),
-              //           if (upcomingEvents.isEmpty)
-              //             Center(
-              //               child: Text("No upcoming sessions scheduled"),
-              //             )
-              //           else
-              //             ...upcomingEvents.map(_buildEventCard).toList(),
-              //
-              //           const SizedBox(height: 30),
-              //
-              //           // ======================
-              //           // PAST SESSIONS LIST
-              //           // ======================
-              //           if (pastEvents.isNotEmpty)
-              //             Padding(
-              //               padding: EdgeInsets.only(left: 10),
-              //               child: Text(
-              //                 "Past Sessions",
-              //                 style: TextStyle(
-              //                   fontSize: 30,
-              //                   fontWeight: FontWeight.bold,
-              //                 ),
-              //               ),
-              //             ),
-              //
-              //           const SizedBox(height: 10),
-              //
-              //           // ======================
-              //           // PAST SESSIONS LIST
-              //           // ======================
-              //           ...pastEvents.map(_buildEventCard).toList(),
-              //         ],
-              //       ),
-              //     ),
-              // )
             ],
           ),
         );
@@ -458,9 +462,9 @@ class _SessionsPageState extends State<SessionsPage> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: daysUntil(event) < 0
+                    color: _daysUntil(event) < 0
                         ? Colors.red.shade600
-                        : daysUntil(event) == 0
+                        : _daysUntil(event) == 0
                         ? Colors.green.shade600
                         : Colors.blue.shade600,
                     borderRadius: BorderRadius.circular(20),
@@ -473,12 +477,12 @@ class _SessionsPageState extends State<SessionsPage> {
                     ],
                   ),
                   child: Text(
-                    daysUntil(event) == 0
+                    _daysUntil(event) == 0
                         ? 'TODAY'
-                        : daysUntil(event) < 0
+                        : _daysUntil(event) < 0
                         ? 'PASSED'
-                        : 'in ${daysUntil(event)} '
-                              '${daysUntil(event) == 1 ? 'day' : 'days'}',
+                        : 'in ${_daysUntil(event)} '
+                              '${_daysUntil(event) == 1 ? 'day' : 'days'}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -520,13 +524,8 @@ class _SessionsPageState extends State<SessionsPage> {
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
                 ),
                 IconButton(
-                  onPressed: () async {
-                    // Delete event
-                    await CalendarDatabase.instance.deleteEvent(event.id!);
-                    // Refresh List
-                    setState(() {
-                      loadEvents();
-                    });
+                  onPressed: (){
+                    deleteSession(event.id!);
                   },
                   icon: Icon(Icons.delete),
                 ),
@@ -539,9 +538,9 @@ class _SessionsPageState extends State<SessionsPage> {
   }
 }
 
-// ==================================
-// Dialog Box to create new session
-// ==================================
+// =====================================
+// DIALOG BOX TO CREATE NEW SESSIONS
+// =====================================
 
 class NewSessionDialog extends StatefulWidget {
   final String? username;
@@ -581,7 +580,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
       setState(() {
         _selectedDate = date;
       });
-      validateDateTime();
+      _validateDateTime();
     }
   }
 
@@ -598,11 +597,11 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
       setState(() {
         _selectedTime = time;
       });
-      validateDateTime();
+      _validateDateTime();
     }
   }
 
-  void validateDateTime() {
+  void _validateDateTime() {
     if (_selectedDate != null && _selectedTime != null) {
       final selectedDateTime = DateTime(
         _selectedDate!.year,
@@ -623,7 +622,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
     }
   }
 
-  Future<void> checkForAttendee(String attendeeValue) async {
+  Future<void> _checkForAttendee(String attendeeValue) async {
     // Function that checks to see if a user is in the database
 
     helperText = null;
@@ -722,7 +721,7 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
                     ),
                     onChanged: (value) {
                       // Check the database if the user exists, show icon to indicate
-                      checkForAttendee(value);
+                      _checkForAttendee(value);
                     },
                   ),
                 ),
@@ -761,7 +760,6 @@ class _NewSessionDialogState extends State<NewSessionDialog> {
 
                       final timeStr =
                           '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
-                      print(timeStr);
                       final event = CalendarEvent(
                         username: u,
                         date: _selectedDate!,
