@@ -77,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // To prevent back button on sign in page
         title: Text(_showRegistration ? 'Create Account' : 'Sign in'),
         backgroundColor: Color(0xFFA23E2E),
         leading: _showRegistration
