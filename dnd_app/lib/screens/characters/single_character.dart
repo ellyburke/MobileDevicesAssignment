@@ -8,7 +8,7 @@ import 'package:dnd_app/character_class.dart';
 import 'package:http/http.dart' as http;
 import 'package:dnd_app/screens/characters.dart';
 
-import 'new_character_form.dart';
+import 'package:dnd_app/screens/characters/new_character_form.dart';
 
 class singleCharacter extends StatefulWidget {
   final String username;

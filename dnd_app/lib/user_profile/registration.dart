@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/databases/user_database.dart';
 
 class RegistrationForm extends StatefulWidget {
   final VoidCallback onRegistrationComplete;

@@ -11,7 +11,7 @@ import 'package:dnd_app/user_database.dart';
 // Model imports
 import 'package:dnd_app/character_class.dart';
 
-import '../main.dart';
+import 'package:dnd_app/main.dart';
 
 class CharacterPage extends StatefulWidget {
   final String thisUsername;

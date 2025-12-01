@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dnd_app/calendar_database.dart';
-import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/databases/calendar_database.dart';
+import 'package:dnd_app/databases/user_database.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // For handling local notifications
 import 'dart:async'; // For countdown functionality
