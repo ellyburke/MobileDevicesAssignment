@@ -10,7 +10,6 @@ import 'package:dnd_app/databases/user_database.dart';
 import 'package:dnd_app/user_profile/login.dart';
 import 'package:dnd_app/user_profile/profile.dart';
 
-
 void main() async {
   // Initialize sqflite for different platforms if needed
   // sqfliteFfiInit();
