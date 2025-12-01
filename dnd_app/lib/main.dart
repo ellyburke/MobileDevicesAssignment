@@ -102,27 +102,58 @@ class _HomePageState extends State<HomePage> {
     loadUser();
   }
 
+  void _logout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Logout'),
+        content: Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Color(0xFF6B4E24))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+            child: Text('Logout', style: TextStyle(color: Color(0xFFA23E2E))),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("D&D Companion App"),
         actions: [
-IconButton(
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfileScreen(
-          username: widget.username,
-          onBack: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  },
-  icon: Icon(Icons.account_circle),
-  tooltip: widget.username,
-),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(
+                    username: widget.username,
+                    onBack: () => Navigator.pop(context),
+                  ),
+                ),
+              );
+            },
+            icon: Icon(Icons.account_circle),
+            tooltip: widget.username,
+          ),
+          IconButton(
+            onPressed: _logout,
+            icon: Icon(Icons.logout),
+            tooltip: 'Logout',
+          ),
         ],
       ),
       body: SingleChildScrollView(
