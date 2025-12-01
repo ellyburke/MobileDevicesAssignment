@@ -70,7 +70,9 @@ class ContentPageState extends State<ContentPage> {
             } else if (snapshot.data is Monster) {
               return buildMonster(snapshot.data as Monster);
             } else {
-              return Center(child: CircularProgressIndicator());
+              return Center(
+                child: CircularProgressIndicator(color: Color(0xFF1E1B18)),
+              );
             }
           }
           // by default return circular progress indicator
