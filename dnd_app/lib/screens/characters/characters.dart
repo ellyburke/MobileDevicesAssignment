@@ -11,7 +11,7 @@ import 'package:dnd_app/user_database.dart';
 // Model imports
 import 'package:dnd_app/character_class.dart';
 
-import '../main.dart';
+import 'package:dnd_app/main.dart';
 
 class CharacterPage extends StatefulWidget {
   final String thisUsername;
@@ -26,8 +26,7 @@ class _CharacterPageState extends State<CharacterPage> {
   late final id = widget.userId;
   late final u = widget.thisUsername;
   // Get the list of characters from the database
-  late Future<List<Character>> characterList = CharacterDatabase.instance
-      .getAllCharactersByUsername(u);
+  late Future<List<Character>> characterList = CharacterDatabase.instance.getAllCharactersByUsername(u);
 
   // Store a list of friends usernames and all characters
   late Future<List<Character>> allCharacters = CharacterDatabase.instance

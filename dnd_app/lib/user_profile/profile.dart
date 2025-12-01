@@ -1,6 +1,8 @@
 // profile.dart
 import 'package:flutter/material.dart';
-import 'package:dnd_app/user_database.dart';
+import 'package:dnd_app/databases/user_database.dart';
+
+
 
 class ProfileScreen extends StatefulWidget {
   final String username;
