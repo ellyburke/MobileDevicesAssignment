@@ -148,7 +148,10 @@ class _NewCharacterFormState extends State<NewCharacterForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('New Character')),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: Text('New Character')),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -284,7 +287,10 @@ class _RaceSelectorState extends State<RaceSelector> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Choose your race")),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: Text("Choose your race")),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(16.0),
@@ -623,7 +629,10 @@ class SelectClassState extends State<SelectClass> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Choose your class")),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: Text("Choose your class")),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -1217,7 +1226,10 @@ class pickSpellsState extends State<pickSpells> {
     final leveledLimit = _leveledLimit;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Select your Spells")),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: const Text("Select your Spells")),
       body: SafeArea(
         child: _isLoading
             ? Center(
@@ -1381,7 +1393,10 @@ class statsPageState extends State<statsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Character Stats")),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: Text("Character Stats")),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -1925,7 +1940,10 @@ class backgroundState extends State<backgroundPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Character Info")),
+      appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,),
+          title: Text("Character Info")),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
