@@ -26,8 +26,7 @@ class _CharacterPageState extends State<CharacterPage> {
   late final id = widget.userId;
   late final u = widget.thisUsername;
   // Get the list of characters from the database
-  late Future<List<Character>> characterList = CharacterDatabase.instance
-      .getAllCharactersByUsername(u);
+  late Future<List<Character>> characterList = CharacterDatabase.instance.getAllCharactersByUsername(u);
 
   // Store a list of friends usernames and all characters
   late Future<List<Character>> allCharacters = CharacterDatabase.instance
