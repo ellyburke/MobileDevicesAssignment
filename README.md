@@ -35,6 +35,6 @@ flutter run
 |---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Arad Ayntabli | Character Creation pages, Single Character Page, Notifications of Sessions page, Helped format sessions page dialog, Calendar Database, User Database, Character Class |
 | Ayaan Mustafa | Compendium Page                                                                                                                                                        |
-| Ellycea Burke | <b>Frontend:</b> Home Page, Friends Page, Sessions Page, Character's tabs <br> <b>Backend:</b> Helped write some funtions in the User Database                         |
+| Ellycea Burke | <b>Frontend:</b> Home Page, Friends Page, Sessions Page, Characters tabs <br> <b>Backend:</b> Helped write some funtions in the User Database                         |
 | Sami Khan     | Login Page, Registration page, Home page, Account dashboard.                                                                                                           
 | Victor Ryzak  | Character Database, Character class                                                                                                                                    |
