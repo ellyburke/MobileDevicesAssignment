@@ -1,4 +1,3 @@
-// profile.dart
 import 'package:flutter/material.dart';
 import 'package:dnd_app/databases/user_database.dart';
 
